@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  
+
+  <xacro:macro name="inertia_box" params="x y z mass">
+      <mass value="${mass}" />
+      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
+        izz="${0.0833333 * mass * (x*x + y*y)}" />
+  </xacro:macro>
+  
+  <xacro:macro name="car_wheel" params="side parent xyz rpy radius model_dir:=^ **contact_data">   
+
+    <!-- Hubcap Mount -->
+    <joint name="${side}_hub_mount_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <parent link="${parent}"/>
+        <child link="${side}_hub_mount"/>
+        <axis xyz="0 1 0"/>
+    </joint>
+    <link name="${side}_hub_mount">
+        <inertial>
+            <mass value="0.01"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry> 
+                <box size="0.001 0.001 0.001"/> 
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry> 
+                <box size="0.001 0.001 0.001"/> 
+            </geometry>
+        </collision>
+    </link>
+  
+  
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  
+  <xacro:include filename="inertia_tensors.xacro"/>
+  <xacro:include filename="chassis.xacro"/>
+  <xacro:property name="wheel_radius" value="0.097" />
+  <xacro:property name="M_PI" value="3.1415926535897931" />
+  
+  <xacro:macro name="car_body" params="name parent">
+        
+    <!-- base_link -->
+    <link name="${parent}"/>
+    
+    <!-- Chassis -->
+    <xacro:car_chassis name="${name}" parent="${parent}" xyz="0 0 0.068" rpy="0 0 0"/>
+      
+    
+
+  </xacro:macro>
+</robot>
