@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="robot_name"                                 default="r0" />
-  <arg name="position"                                   default="-x 0.0 -y 0.0 -z 1.01" />
+  <arg name="position"                                   default="-x 0.0 -y 0.0 -z 0.1" />
   <arg name="model_dir"                                  default="$(find car_gazebo_models)/models"/>
   <arg name="platform_dir"                               default="/platforms/car" />
   <arg name="launch_robot_state_publisher"               default="false" />

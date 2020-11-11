@@ -1,12 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
-  <xacro:macro name="inertia_box" params="x y z mass">
-      <mass value="${mass}" />
-      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
-        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
-        izz="${0.0833333 * mass * (x*x + y*y)}" />
-  </xacro:macro>
   
   <xacro:macro name="car_chassis" params="name parent xyz rpy">   
       
@@ -36,10 +30,9 @@
                 <box size="${plate_x} ${plate_y} ${plate_z}"/>
             </geometry>
         </collision>
-        <inertial>
+        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.01">
             <origin xyz="${plate_x/2} 0 -${plate_z}" />
-            <xacro:inertia_box x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.01" />
-        </inertial>
+        </xacro:box_inertial_with_origin>
     </link>  
   </xacro:macro>
 

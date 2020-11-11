@@ -4,12 +4,15 @@
 
   <xacro:macro name="wheel" params="side parent xyz rpy radius">   
 
-    <xacro:property name="mount_lenth" value="0.01" />
-    <xacro:property name="mount_radius" value="0.02" />
-    <xacro:property name="axis_lenth" value="0.01" />
+    <xacro:property name="mount_size" value="0.01" />
+    <xacro:property name="steering_length" value="0.03" />
+    <xacro:property name="steering_radius" value="0.005" />
+    <xacro:property name="axis_length" value="0.01" />
     <xacro:property name="axis_radius" value="0.01" />
-    <xacro:property name="wheel_lenth" value="0.025" />
+    <xacro:property name="wheel_length" value="0.025" />
     <xacro:property name="wheel_radius" value="${radius}" />
+    <xacro:property name="cap_size" value="0.01" />
+    <xacro:property name="cap_length" value="0.005" />
     
     <!-- Mount -->
     <joint name="wheel_mount_${side}_joint" type="fixed">
@@ -18,75 +21,106 @@
         <child link="wheel_mount_${side}"/>
     </joint>
     <link name="wheel_mount_${side}">
+        <visual>
+            <origin xyz="0 0 ${mount_size/2}" rpy="0 0 0"/>
+            <geometry> 
+                <box size="${mount_size} ${mount_size} ${mount_size}"/>
+            </geometry>
+        </visual>
+    </link>
+    
+    <!-- steering -->
+    <joint name="wheel_steering_${side}_joint" type="fixed">
+        <origin xyz=" 0 0 0" rpy="0 0 0"/>
+        <parent link="wheel_mount_${side}"/>
+        <child link="wheel_steering_${side}"/>
+    </joint>
+    <link name="wheel_steering_${side}">
         <inertial>
             <mass value="0.01"/>
             <origin xyz="0 0 0"/>
             <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
         </inertial>
         <visual>
-            <origin xyz="0 0 ${mount_lenth/2}" rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
             <geometry> 
-                <cylinder radius="${mount_radius}" length="${mount_lenth}"/>
+                <cylinder radius="${steering_radius}" length="${steering_length}"/>
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 ${mount_lenth/2} " rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
             <geometry> 
-                <cylinder radius="${mount_radius}" length="${mount_lenth}"/>
+                <cylinder radius="${steering_radius}" length="${steering_length}"/>
             </geometry>
         </collision>
+        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${steering_length}"  mass="0.01">
+            <origin xyz="0 0 ${steering_radius/2}" rpy="0 0 0"/>
+        </xacro:cylinder_inertial_with_origin>
     </link>
     
     <!-- axis -->
-    <joint name="wheel_axis_${side}_joint" type="fixed">
-        <origin xyz=" 0 0 ${mount_lenth}" rpy="0 0 0"/>
-        <parent link="wheel_mount_${side}"/>
+    <joint name="wheel_axis_${side}_joint" type="continuous">
+        <origin xyz=" 0 0 ${steering_radius}" rpy="0 0 0"/>
+        <parent link="wheel_steering_${side}"/>
         <child link="wheel_axis_${side}"/>
+        <axis xyz="0 0 1"/>
+          <dynamics damping="0.0001" friction="0.0"/>
     </joint>
     <link name="wheel_axis_${side}">
-        <inertial>
-            <mass value="0.01"/>
-            <origin xyz="0 0 0"/>
-            <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
-        </inertial>
         <visual>
-            <origin xyz="0 0 ${axis_lenth/2}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
             <geometry> 
-                <cylinder radius="${axis_radius}" length="${axis_lenth}"/>
+                <cylinder radius="${axis_radius}" length="${axis_length}"/>
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 ${axis_lenth/2}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
             <geometry> 
-                <cylinder radius="${axis_radius}" length="${axis_lenth}"/>
+                <cylinder radius="${axis_radius}" length="${axis_length}"/>
             </geometry>
         </collision>
+        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${axis_length}"  mass="0.01">
+            <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
+        </xacro:cylinder_inertial_with_origin>
     </link>
   
     <!-- Wheel -->
     <joint name="wheel_${side}_joint" type="fixed">
-        <origin xyz=" 0 0 ${axis_lenth}" rpy="0 0 0"/>
+        <origin xyz=" 0 0 ${axis_length}" rpy="0 0 0"/>
         <parent link="wheel_axis_${side}"/>
         <child link="wheel_${side}"/>
     </joint>
     <link name="wheel_${side}">
-        <inertial>
-            <mass value="0.01"/>
-            <origin xyz="0 0 0"/>
-            <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
-        </inertial>
         <visual>
-            <origin xyz="0 0 ${wheel_lenth/2}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${wheel_length/2}" rpy="0 0 0"/>
             <geometry> 
-                <cylinder radius="${wheel_radius}" length="${wheel_lenth}"/>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 ${wheel_lenth/2}" rpy="0 0 0"/>
+            <origin xyz="0 0 ${wheel_length/2}" rpy="0 0 0"/>
             <geometry> 
-                <cylinder radius="${wheel_radius}" length="${wheel_lenth}"/>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
             </geometry>
         </collision>
+        <xacro:cylinder_inertial_with_origin radius="${wheel_radius}" length="${wheel_length}"  mass="0.1">
+            <origin xyz="0 0 ${wheel_length/2}" rpy="0 0 0"/>
+        </xacro:cylinder_inertial_with_origin>
+    </link>
+    
+    <!-- Wheel Cap -->
+    <joint name="wheel_cap_${side}_joint" type="fixed">
+        <origin xyz=" 0 0 ${wheel_length}" rpy="0 0 0"/>
+        <parent link="wheel_${side}"/>
+        <child link="wheel_cap_${side}"/>
+    </joint>
+    <link name="wheel_cap_${side}">
+        <visual>
+            <origin xyz="0 0 ${cap_length/2}" rpy="0 0 0"/>
+            <geometry> 
+                <box size="${cap_size} ${cap_size} ${cap_length}"/>
+            </geometry>
+        </visual>
     </link>
   
   
