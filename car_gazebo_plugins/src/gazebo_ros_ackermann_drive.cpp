@@ -50,7 +50,7 @@
 #include <algorithm>
 #include <assert.h>
 
-#include <car_gazebo_plugins/gazebo_ros_diff_drive.h>
+#include <gazebo_plugins/gazebo_ros_ackermann_drive.h>
 
 #ifdef ENABLE_PROFILER
 #include <ignition/common/Profiler.hh>
@@ -72,16 +72,16 @@ enum {
     LEFT,
 };
 
-GazeboRosDiffDrive::GazeboRosDiffDrive() {}
+GazeboRosAckermannDrive::GazeboRosAckermannDrive() {}
 
 // Destructor
-GazeboRosDiffDrive::~GazeboRosDiffDrive()
+GazeboRosAckermannDrive::~GazeboRosAckermannDrive()
 {
     FiniChild();
 }
 
 // Load the controller
-void GazeboRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf )
+void GazeboRosAckermannDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf )
 {
 
     this->parent = _parent;
@@ -117,7 +117,7 @@ void GazeboRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
 
     this->publish_tf_ = true;
     if (!_sdf->HasElement("publishTf")) {
-      ROS_WARN_NAMED("diff_drive", "GazeboRosDiffDrive Plugin (ns = %s) missing <publishTf>, defaults to %d",
+      ROS_WARN_NAMED("diff_drive", "GazeboRosAckermannDrive Plugin (ns = %s) missing <publishTf>, defaults to %d",
           this->robot_namespace_.c_str(), this->publish_tf_);
     } else {
       this->publish_tf_ = _sdf->GetElement("publishTf")->Get<bool>();
@@ -158,7 +158,7 @@ void GazeboRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
 
     ros::SubscribeOptions so =
         ros::SubscribeOptions::create<geometry_msgs::Twist>(command_topic_, 1,
-                boost::bind(&GazeboRosDiffDrive::cmdVelCallback, this, _1),
+                boost::bind(&GazeboRosAckermannDrive::cmdVelCallback, this, _1),
                 ros::VoidPtr(), &queue_);
 
     cmd_vel_subscriber_ = gazebo_ros_->node()->subscribe(so);
@@ -172,15 +172,15 @@ void GazeboRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
 
     // start custom queue for diff drive
     this->callback_queue_thread_ =
-        boost::thread ( boost::bind ( &GazeboRosDiffDrive::QueueThread, this ) );
+        boost::thread ( boost::bind ( &GazeboRosAckermannDrive::QueueThread, this ) );
 
     // listen to the update event (broadcast every simulation iteration)
     this->update_connection_ =
-        event::Events::ConnectWorldUpdateBegin ( boost::bind ( &GazeboRosDiffDrive::UpdateChild, this ) );
+        event::Events::ConnectWorldUpdateBegin ( boost::bind ( &GazeboRosAckermannDrive::UpdateChild, this ) );
 
 }
 
-void GazeboRosDiffDrive::Reset()
+void GazeboRosAckermannDrive::Reset()
 {
 #if GAZEBO_MAJOR_VERSION >= 8
   last_update_time_ = parent->GetWorld()->SimTime();
@@ -196,7 +196,7 @@ void GazeboRosDiffDrive::Reset()
   joints_[RIGHT]->SetParam ( "fmax", 0, wheel_torque );
 }
 
-void GazeboRosDiffDrive::publishWheelJointState()
+void GazeboRosAckermannDrive::publishWheelJointState()
 {
     ros::Time current_time = ros::Time::now();
 
@@ -217,7 +217,7 @@ void GazeboRosDiffDrive::publishWheelJointState()
     joint_state_publisher_.publish ( joint_state_ );
 }
 
-void GazeboRosDiffDrive::publishWheelTF()
+void GazeboRosAckermannDrive::publishWheelTF()
 {
     ros::Time current_time = ros::Time::now();
     for ( int i = 0; i < 2; i++ ) {
@@ -241,16 +241,16 @@ void GazeboRosDiffDrive::publishWheelTF()
 }
 
 // Update the controller
-void GazeboRosDiffDrive::UpdateChild()
+void GazeboRosAckermannDrive::UpdateChild()
 {
 #ifdef ENABLE_PROFILER
-  IGN_PROFILE("GazeboRosDiffDrive::UpdateChild");
+  IGN_PROFILE("GazeboRosAckermannDrive::UpdateChild");
   IGN_PROFILE_BEGIN("update");
 #endif
     /* force reset SetParam("fmax") since Joint::Reset reset MaxForce to zero at
        https://bitbucket.org/osrf/gazebo/src/8091da8b3c529a362f39b042095e12c94656a5d1/gazebo/physics/Joint.cc?at=gazebo2_2.2.5#cl-331
        (this has been solved in https://bitbucket.org/osrf/gazebo/diff/gazebo/physics/Joint.cc?diff2=b64ff1b7b6ff&at=issue_964 )
-       and Joint::Reset is called after ModelPlugin::Reset, so we need to set maxForce to wheel_torque other than GazeboRosDiffDrive::Reset
+       and Joint::Reset is called after ModelPlugin::Reset, so we need to set maxForce to wheel_torque other than GazeboRosAckermannDrive::Reset
        (this seems to be solved in https://bitbucket.org/osrf/gazebo/commits/ec8801d8683160eccae22c74bf865d59fac81f1e)
     */
     for ( int i = 0; i < 2; i++ ) {
@@ -312,7 +312,7 @@ void GazeboRosDiffDrive::UpdateChild()
 }
 
 // Finalize the controller
-void GazeboRosDiffDrive::FiniChild()
+void GazeboRosAckermannDrive::FiniChild()
 {
     alive_ = false;
     queue_.clear();
@@ -321,7 +321,7 @@ void GazeboRosDiffDrive::FiniChild()
     callback_queue_thread_.join();
 }
 
-void GazeboRosDiffDrive::getWheelVelocities()
+void GazeboRosAckermannDrive::getWheelVelocities()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
 
@@ -332,14 +332,14 @@ void GazeboRosDiffDrive::getWheelVelocities()
     wheel_speed_[RIGHT] = vr + va * wheel_separation_ / 2.0;
 }
 
-void GazeboRosDiffDrive::cmdVelCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg )
+void GazeboRosAckermannDrive::cmdVelCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg )
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
     x_ = cmd_msg->linear.x;
     rot_ = cmd_msg->angular.z;
 }
 
-void GazeboRosDiffDrive::QueueThread()
+void GazeboRosAckermannDrive::QueueThread()
 {
     static const double timeout = 0.01;
 
@@ -348,7 +348,7 @@ void GazeboRosDiffDrive::QueueThread()
     }
 }
 
-void GazeboRosDiffDrive::UpdateOdometryEncoder()
+void GazeboRosAckermannDrive::UpdateOdometryEncoder()
 {
     double vl = joints_[LEFT]->GetVelocity ( 0 );
     double vr = joints_[RIGHT]->GetVelocity ( 0 );
@@ -399,7 +399,7 @@ void GazeboRosDiffDrive::UpdateOdometryEncoder()
     odom_.twist.twist.linear.y = 0;
 }
 
-void GazeboRosDiffDrive::publishOdometry ( double step_time )
+void GazeboRosAckermannDrive::publishOdometry ( double step_time )
 {
 
     ros::Time current_time = ros::Time::now();
@@ -475,5 +475,5 @@ void GazeboRosDiffDrive::publishOdometry ( double step_time )
     odometry_publisher_.publish ( odom_ );
 }
 
-GZ_REGISTER_MODEL_PLUGIN ( GazeboRosDiffDrive )
+GZ_REGISTER_MODEL_PLUGIN ( GazeboRosAckermannDrive )
 }

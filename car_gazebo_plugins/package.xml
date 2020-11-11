@@ -3,7 +3,7 @@
   <name>car_gazebo_plugins</name>
   <version>2.9.1</version>
   <description>
-    Robot-independent Gazebo plugins for sensors, motors and dynamic reconfigurable components.
+    Robot-independent Gazebo plugins for cars.
   </description>
 
   <maintainer email="markus.bader@tuwien.ac.at">Markus Bader</maintainer>

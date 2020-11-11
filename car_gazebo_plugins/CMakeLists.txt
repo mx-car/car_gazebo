@@ -97,8 +97,7 @@ link_directories(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
-  gazebo_ros_utils
-  gazebo_ros_diff_drive
+  gazebo_ros_ackermann_drive
   
   CATKIN_DEPENDS
   gazebo_dev
@@ -122,11 +121,11 @@ add_definitions(-fPIC) # what is this for?
 
 ## Plugins
 
-add_library(car_gazebo_plugins src/gazebo_ros_diff_drive.cpp)
-target_link_libraries(car_gazebo_plugins ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(gazebo_ros_ackermann_drive src/gazebo_ros_ackermann_drive.cpp)
+target_link_libraries(gazebo_ros_ackermann_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS
-  car_gazebo_plugins
+  gazebo_ros_ackermann_drive
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

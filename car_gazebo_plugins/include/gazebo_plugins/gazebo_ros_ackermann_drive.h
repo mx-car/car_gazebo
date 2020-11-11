@@ -38,8 +38,8 @@
  * $ Id: 06/21/2013 11:23:40 AM piyushk $
  */
 
-#ifndef CAR_DIFFDRIVE_PLUGIN_HH
-#define CAR_DIFFDRIVE_PLUGIN_HH
+#ifndef ACKERMANN_PLUGIN_HH
+#define ACKERMANN_PLUGIN_HH
 
 #include <map>
 
@@ -70,7 +70,7 @@ namespace gazebo {
   class Joint;
   class Entity;
 
-  class GazeboRosDiffDrive : public ModelPlugin {
+  class GazeboRosAckermannDrive : public ModelPlugin {
 
     enum OdomSource
     {
@@ -78,8 +78,8 @@ namespace gazebo {
         WORLD = 1,
     };
     public:
-      GazeboRosDiffDrive();
-      ~GazeboRosDiffDrive();
+      GazeboRosAckermannDrive();
+      ~GazeboRosAckermannDrive();
       void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
       void Reset();
 
