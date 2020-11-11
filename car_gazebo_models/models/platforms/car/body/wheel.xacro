@@ -2,38 +2,89 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
 
-  <xacro:macro name="inertia_box" params="x y z mass">
-      <mass value="${mass}" />
-      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
-        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
-        izz="${0.0833333 * mass * (x*x + y*y)}" />
-  </xacro:macro>
-  
-  <xacro:macro name="car_wheel" params="side parent xyz rpy radius model_dir:=^ **contact_data">   
+  <xacro:macro name="wheel" params="side parent xyz rpy radius">   
 
-    <!-- Hubcap Mount -->
-    <joint name="${side}_hub_mount_joint" type="fixed">
+    <xacro:property name="mount_lenth" value="0.01" />
+    <xacro:property name="mount_radius" value="0.02" />
+    <xacro:property name="axis_lenth" value="0.01" />
+    <xacro:property name="axis_radius" value="0.01" />
+    <xacro:property name="wheel_lenth" value="0.025" />
+    <xacro:property name="wheel_radius" value="${radius}" />
+    
+    <!-- Mount -->
+    <joint name="wheel_mount_${side}_joint" type="fixed">
         <origin xyz="${xyz}" rpy="${rpy}"/>
         <parent link="${parent}"/>
-        <child link="${side}_hub_mount"/>
-        <axis xyz="0 1 0"/>
+        <child link="wheel_mount_${side}"/>
     </joint>
-    <link name="${side}_hub_mount">
+    <link name="wheel_mount_${side}">
         <inertial>
             <mass value="0.01"/>
             <origin xyz="0 0 0"/>
             <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
         </inertial>
         <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 ${mount_lenth/2}" rpy="0 0 0"/>
             <geometry> 
-                <box size="0.001 0.001 0.001"/> 
+                <cylinder radius="${mount_radius}" length="${mount_lenth}"/>
             </geometry>
         </visual>
         <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 ${mount_lenth/2} " rpy="0 0 0"/>
             <geometry> 
-                <box size="0.001 0.001 0.001"/> 
+                <cylinder radius="${mount_radius}" length="${mount_lenth}"/>
+            </geometry>
+        </collision>
+    </link>
+    
+    <!-- axis -->
+    <joint name="wheel_axis_${side}_joint" type="fixed">
+        <origin xyz=" 0 0 ${mount_lenth}" rpy="0 0 0"/>
+        <parent link="wheel_mount_${side}"/>
+        <child link="wheel_axis_${side}"/>
+    </joint>
+    <link name="wheel_axis_${side}">
+        <inertial>
+            <mass value="0.01"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${axis_lenth/2}" rpy="0 0 0"/>
+            <geometry> 
+                <cylinder radius="${axis_radius}" length="${axis_lenth}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 ${axis_lenth/2}" rpy="0 0 0"/>
+            <geometry> 
+                <cylinder radius="${axis_radius}" length="${axis_lenth}"/>
+            </geometry>
+        </collision>
+    </link>
+  
+    <!-- Wheel -->
+    <joint name="wheel_${side}_joint" type="fixed">
+        <origin xyz=" 0 0 ${axis_lenth}" rpy="0 0 0"/>
+        <parent link="wheel_axis_${side}"/>
+        <child link="wheel_${side}"/>
+    </joint>
+    <link name="wheel_${side}">
+        <inertial>
+            <mass value="0.01"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${wheel_lenth/2}" rpy="0 0 0"/>
+            <geometry> 
+                <cylinder radius="${wheel_radius}" length="${wheel_lenth}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 ${wheel_lenth/2}" rpy="0 0 0"/>
+            <geometry> 
+                <cylinder radius="${wheel_radius}" length="${wheel_lenth}"/>
             </geometry>
         </collision>
     </link>

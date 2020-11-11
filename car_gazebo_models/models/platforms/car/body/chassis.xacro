@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
-  <xacro:property name="bottom_plate_box_size"    value=" 0.26  0.08  0.02" />
-  <xacro:property name="bottom_plate_origin"      value="-0.13  0.00 -0.02" />
-
   <xacro:macro name="inertia_box" params="x y z mass">
       <mass value="${mass}" />
       <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
@@ -11,8 +8,12 @@
         izz="${0.0833333 * mass * (x*x + y*y)}" />
   </xacro:macro>
   
-  <xacro:macro name="car_chassis" params="name parent xyz rpy model_dir:=^">   
+  <xacro:macro name="car_chassis" params="name parent xyz rpy">   
       
+  <xacro:property name="plate_x"    value="0.26" />
+  <xacro:property name="plate_y"    value="0.08" />
+  <xacro:property name="plate_z"    value="0.02" />
+
     <!-- Chassis -->
     <joint name="${parent}_${name}_joint" type="fixed">
         <origin xyz="${xyz}" rpy="${rpy}"/>
@@ -21,23 +22,23 @@
     </joint>
     <link name="${name}">
         <visual>
-        <origin xyz="${bottom_plate_origin}" rpy="0 0 0"/>
-        <geometry>
-            <box size="${bottom_plate_box_size}"/>
-        </geometry>
-        <material name="ChassisRed">
-            <color rgba="0.851 0.0 0.0 1.0"/>
-        </material>
+            <origin xyz="${plate_x/2} 0 -${plate_z}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${plate_x} ${plate_y} ${plate_z}"/>
+            </geometry>
+            <material name="ChassisRed">
+                <color rgba="0.851 0.0 0.0 1.0"/>
+            </material>
         </visual>
         <collision>
-            <origin xyz="${bottom_plate_origin}" rpy="0 0 0"/>
+            <origin xyz="${plate_x/2} 0 -${plate_z}" rpy="0 0 0"/>
             <geometry>
-                <box size="${bottom_plate_box_size}"/>
+                <box size="${plate_x} ${plate_y} ${plate_z}"/>
             </geometry>
         </collision>
         <inertial>
-            <origin xyz="${bottom_plate_origin}" />
-            <xacro:inertia_box x="0.26" y="0.08"  z="0.02" mass="0.01" />
+            <origin xyz="${plate_x/2} 0 -${plate_z}" />
+            <xacro:inertia_box x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.01" />
         </inertial>
     </link>  
   </xacro:macro>
