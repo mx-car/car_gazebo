@@ -15,10 +15,12 @@
     <xacro:property name="cap_length" value="0.005" />
     
     <!-- Mount -->
-    <joint name="wheel_mount_${side}_joint" type="fixed">
+    <joint name="wheel_mount_${side}_joint" type="revolute">
         <origin xyz="${xyz}" rpy="${rpy}"/>
         <parent link="${parent}"/>
         <child link="wheel_mount_${side}"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="50" velocity="50" lower= "${-M_PI}" upper="${M_PI}" /> <!--velocity="5" -->
     </joint>
     <link name="wheel_mount_${side}">
         <visual>
