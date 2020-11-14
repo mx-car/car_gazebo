@@ -75,7 +75,7 @@ execute_process(COMMAND
 catkin_python_setup()
 
 generate_dynamic_reconfigure_options(
-   cfg/CarAckermann.cfg
+   cfg/Ackermann.cfg
 )
 
 include_directories(include
@@ -97,7 +97,7 @@ link_directories(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
-  gazebo_ros_ackermann_drive
+  gazebo_ros_wheels_steerable
   
   CATKIN_DEPENDS
   gazebo_dev
@@ -121,11 +121,11 @@ add_definitions(-fPIC) # what is this for?
 
 ## Plugins
 
-add_library(gazebo_ros_ackermann_drive src/gazebo_ros_ackermann_drive.cpp)
-target_link_libraries(gazebo_ros_ackermann_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(gazebo_ros_wheels_steerable src/gazebo_ros_wheels_steerable.cpp)
+target_link_libraries(gazebo_ros_wheels_steerable ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS
-  gazebo_ros_ackermann_drive
+  gazebo_ros_wheels_steerable
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
