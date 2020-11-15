@@ -72,16 +72,19 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     
     gazebo_ros_->getParameter<double> ( wheel_torque, "wheelTorque", 5.0 );
 
-    // ROS: Subscribe to the velocity command topic (usually "cmd_vel")
-    ROS_INFO_NAMED("diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), topic_cmd_.c_str());
-
-    joints_rotation_[REAR_LEFT ] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_left_joint",  "rear_left_joint"  );
-    joints_rotation_[REAR_RIGHT] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_right_joint", "rear_right_joint" );
-    //joints_rotation_[REAR_LEFT ]->SetParam ( "fmax", 0, wheel_torque );
-    //joints_rotation_[REAR_RIGHT]->SetParam ( "fmax", 0, wheel_torque );
-    joints_rotation_[REAR_LEFT ]->SetParam ( "vel", 0, 1 );
-    joints_rotation_[REAR_RIGHT]->SetParam ( "vel", 0, 1 );
-
+    
+    joints_rotation_.resize ( 2 );
+    joints_rotation_[REAR_LEFT ] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_left_joint"  );
+    joints_rotation_[REAR_RIGHT] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_right_joint" );
+  /*  
+    joints_rotation_[REAR_LEFT ]->SetParam ( "fmax", 0, wheel_torque );
+    joints_rotation_[REAR_RIGHT]->SetParam ( "fmax", 0, wheel_torque );
+*/
+    ROS_WARN("WheelsSteerable list");
+    auto joints = _parent->GetJoints();
+    for(auto j: joints){
+        ROS_INFO_NAMED("joints", "%s", j->GetName().c_str());
+    }
 
     ros::SubscribeOptions so =
         ros::SubscribeOptions::create<geometry_msgs::Twist>(topic_cmd_, 1,
@@ -117,6 +120,8 @@ void GazeboRosWheelsSteerable::UpdateChild()
     IGN_PROFILE_BEGIN("update");
 #endif
 
+    joints_rotation_[REAR_LEFT ]->SetParam ( "vel", 0, 10 );
+    joints_rotation_[REAR_RIGHT]->SetParam ( "vel", 0, 10 );
 #ifdef ENABLE_PROFILER
     IGN_PROFILE_END();
 #endif
