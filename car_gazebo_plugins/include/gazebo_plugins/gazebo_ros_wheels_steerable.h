@@ -66,10 +66,10 @@ namespace gazebo {
   class GazeboRosWheelsSteerable : public ModelPlugin {
 
     enum Wheel {
-        REAR_RIGHT = 0,
-        REAR_LEFT = 1,
-        FRONT_RIGHT = 2,
-        FRONT_LEFT = 3,
+        FRONT_LEFT = 0,
+        FRONT_RIGHT = 1,
+        REAR_LEFT = 2,
+        REAR_RIGHT = 3,
     };
     public:
       GazeboRosWheelsSteerable();
@@ -89,21 +89,26 @@ namespace gazebo {
       event::ConnectionPtr update_connection_;
 
 
-      std::vector<physics::JointPtr> joints_rotation_;
-      std::vector<physics::JointPtr> joints_steering_;
+      std::vector< physics::JointPtr> joints_rotation_;
 
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
+      geometry_msgs::TwistConstPtr cmd_twist_;
 
       boost::mutex lock;
       bool alive_;
 
-      std::string topic_cmd_;
+      std::string topic_cmd_twist_;
       std::string topic_odom_;
       std::string frame_odom_;
       std::string frame_base_;
+      std::string joint_rear_left_;
+      std::string joint_rear_right_;
+      std::string joint_steering_left_;
+      std::string joint_steering_right_;
+      
       double update_rate_controller_;
-      double wheel_torque;
+      double torque_max_wheel_;
       
       // Custom Callback Queue
       ros::CallbackQueue queue_;

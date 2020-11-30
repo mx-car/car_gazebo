@@ -1,71 +1,22 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
-  <xacro:macro name="diff_joints_state_publisher" params="ns">        
+  <xacro:macro name="wheels_steering">
     <gazebo>
-        <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-          <robotNamespace>${ns}</robotNamespace>
-          <jointName>chassis_swivel_joint, swivel_wheel_joint, left_hub_joint, right_hub_joint</jointName>
-          <updateRate>20.0</updateRate>
-          <alwaysOn>true</alwaysOn>
+        <plugin name="wheels_steering_controller" filename="libgazebo_ros_wheels_steerable.so">
+            <rosDebugLevel>Debug</rosDebugLevel>
+            <rosDebugLevel>Debug</rosDebugLevel>
+            <topicOdom>odom</topicOdom>
+            <frameBase>odom</frameBase>
+            <frameOdom>odom</frameOdom>
+            <topicTwist>cmd_vel</topicTwist>
+            
+            <jointRearLeft>wheel_axis_rear_left_joint</jointRearLeft>
+            <jointRearRight>wheel_axis_rear_right_joint</jointRearRight>
+            <jointSteeringLeft>wheel_mount_front_left_joint</jointSteeringLeft>
+            <jointSteeringRight>wheel_mount_front_right_joint</jointSteeringRight>
+            <torqueMaxWheel>5</torqueMaxWheel>
         </plugin>
     </gazebo>
   </xacro:macro>
-      
-  <xacro:macro name="differential_drive">
-    <gazebo>
-        <plugin name="differential_drive_controller" filename="libtuw_gazebo_ros_diff_drive.so">
-	      <robotNamespace></robotNamespace>
-          <rosDebugLevel>Debug</rosDebugLevel>
-          <alwaysOn>true</alwaysOn>
-          <alwaysOn>true</alwaysOn>
-	      <updateRate>20.0</updateRate>
-	    
-	      <robotBaseFrame>base_link</robotBaseFrame>
-	      <odometryFrame>odom</odometryFrame>
-	    
-	      <commandTopic>cmd_vel</commandTopic>
-          <odometryTopic>odom</odometryTopic>
-          <!-- odom source world or encoder, world uses the simulated ground truth and encoder the wheel odometry -->
-          <odometrySource>encoder</odometrySource>
-	    
-          <leftJoint>left_hub_joint</leftJoint>
-          <rightJoint>right_hub_joint</rightJoint>
-	    
-          <wheelSeparation>0.3</wheelSeparation>
-          <wheelDiameter>0.18</wheelDiameter>
-          <wheelTorque>10</wheelTorque>
-          <wheelAcceleration>1.5</wheelAcceleration>
-            
-          <publishTf>true</publishTf>
-	      <publishWheelTF>true</publishWheelTF>
-          <publishWheelJointState>true</publishWheelJointState>
-            
-        </plugin>
-    </gazebo>    
-  </xacro:macro>
-  
-  
-  <xacro:macro name="iws_joints_state_publisher" params="ns">        
-	<gazebo>
-	  <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-		<robotNamespace>${ns}</robotNamespace>
-		<jointName>chassis_swivel_joint, swivel_wheel_joint</jointName>
-		<updateRate>50.0</updateRate>
-		<alwaysOn>true</alwaysOn>
-	  </plugin>
-	</gazebo>
-  </xacro:macro>
-  
-  <xacro:include filename="plugins_param.xacro"/>
-    
-  <xacro:macro name="iws_drive">
-	<gazebo>
-	  <plugin name="tuw_gazebo_ros_bridge_model_plugin" filename="libtuw_gazebo_ros_bridge_model.so">
-        <xacro:insert_block name="IWSPluginsData" /> 
-	  </plugin>
-	</gazebo>
-  </xacro:macro>
-
-  
 </robot>

@@ -64,22 +64,52 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     // Make sure the ROS node for Gazebo has already been initialized
     gazebo_ros_->isInitialized();
 
-    gazebo_ros_->getParameter<std::string> ( topic_cmd_,                "topicCMD",  "cmd_vel" );
+    gazebo_ros_->getParameter<std::string> ( topic_cmd_twist_,          "topicTwist",  "cmd_vel" );
     gazebo_ros_->getParameter<std::string> ( topic_odom_,               "topicOdom", "odom" );
     gazebo_ros_->getParameter<std::string> ( frame_odom_,               "frameOdom", "odom" );
     gazebo_ros_->getParameter<std::string> ( frame_base_,               "frameBase", "base_link" );
+    gazebo_ros_->getParameter<std::string> ( joint_rear_left_,          "jointRearLeft", "wheel_axis_rear_left_joint" );
+    gazebo_ros_->getParameter<std::string> ( joint_rear_right_,         "jointRearRight", "wheel_axis_rear_right_joint" );
+    gazebo_ros_->getParameter<std::string> ( joint_steering_left_,      "jointSteeringLeft", "wheel_mount_front_left_joint" );
+    gazebo_ros_->getParameter<std::string> ( joint_steering_right_,     "jointSteeringRight", "wheel_mount_front_right_joint" );
+    
     gazebo_ros_->getParameter<double>      ( update_rate_controller_,   "updateRateController", 100.0 );
     
-    gazebo_ros_->getParameter<double> ( wheel_torque, "wheelTorque", 5.0 );
+    gazebo_ros_->getParameter<double> ( torque_max_wheel_, "torqueMaxWheel", 5.0 );
 
+    joints_rotation_.resize(4);
     
-  /*
-    joints_rotation_.resize ( 2 );
-    joints_rotation_[REAR_LEFT ] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_left_joint"  );
-    joints_rotation_[REAR_RIGHT] = gazebo_ros_->getJoint ( parent, "wheel_axis_rear_right_joint" );
-    joints_rotation_[REAR_LEFT ]->SetParam ( "fmax", 0, wheel_torque );
-    joints_rotation_[REAR_RIGHT]->SetParam ( "fmax", 0, wheel_torque );
-*/
+    joints_rotation_[REAR_LEFT ] = _parent->GetJoint(joint_rear_left_);
+    if (!joints_rotation_[REAR_LEFT ]) {
+        char error[200];
+        snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s", gazebo_ros_->info(), joint_rear_left_.c_str());
+        gzthrow(error);
+    }
+    joints_rotation_[REAR_RIGHT ] = _parent->GetJoint(joint_rear_right_);
+    if (!joints_rotation_[REAR_RIGHT ]) {
+        char error[200];
+        snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s", gazebo_ros_->info(), joint_rear_right_.c_str());
+        gzthrow(error);
+    }
+    
+    joints_rotation_[FRONT_LEFT ] = _parent->GetJoint(joint_steering_left_);
+    if (!joints_rotation_[FRONT_LEFT]) {
+        char error[200];
+        snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s", gazebo_ros_->info(), joint_steering_left_.c_str());
+        gzthrow(error);
+    }
+    joints_rotation_[FRONT_RIGHT] = _parent->GetJoint(joint_steering_right_);
+    if (!joints_rotation_[FRONT_RIGHT]) {
+        char error[200];
+        snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s", gazebo_ros_->info(), joint_steering_right_.c_str());
+        gzthrow(error);
+    }
+    
+    joints_rotation_[REAR_LEFT ]->SetParam ( "fmax", 0, torque_max_wheel_ );
+    joints_rotation_[REAR_RIGHT]->SetParam ( "fmax", 0, torque_max_wheel_ );
+    joints_rotation_[FRONT_LEFT ]->SetParam ( "fmax", 0, torque_max_wheel_ );
+    joints_rotation_[FRONT_RIGHT]->SetParam ( "fmax", 0, torque_max_wheel_ );
+
     ROS_WARN("WheelsSteerable list");
     auto joints = _parent->GetJoints();
     for(const auto &j: joints){
@@ -87,12 +117,12 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     }
 
     ros::SubscribeOptions so =
-        ros::SubscribeOptions::create<geometry_msgs::Twist>(topic_cmd_, 1,
+        ros::SubscribeOptions::create<geometry_msgs::Twist>(topic_cmd_twist_, 1,
                 boost::bind(&GazeboRosWheelsSteerable::callbackTopicCMD, this, _1),
                 ros::VoidPtr(), &queue_);
 
     cmd_vel_subscriber_ = gazebo_ros_->node()->subscribe(so);
-    ROS_INFO_NAMED("WheelsSteerable", "%s: Subscribe to %s", gazebo_ros_->info(), topic_cmd_.c_str());
+    ROS_INFO_NAMED("WheelsSteerable", "%s: Subscribe to %s", gazebo_ros_->info(), topic_cmd_twist_.c_str());
 
 
     // start custom queue for diff drive
@@ -119,10 +149,14 @@ void GazeboRosWheelsSteerable::UpdateChild()
     IGN_PROFILE("GazeboRosWheelsSteerable::UpdateChild");
     IGN_PROFILE_BEGIN("update");
 #endif
-/*
-    joints_rotation_[REAR_LEFT ]->SetParam ( "vel", 0, 10 );
-    joints_rotation_[REAR_RIGHT]->SetParam ( "vel", 0, 10 );
-    */
+
+    if(cmd_twist_) {
+        joints_rotation_[REAR_LEFT  ]->SetParam ( "vel", 0,  -cmd_twist_->linear.x );
+        joints_rotation_[REAR_RIGHT ]->SetParam ( "vel", 0,   cmd_twist_->linear.x );
+        joints_rotation_[FRONT_LEFT ]->SetParam ( "vel", 0,  -cmd_twist_->angular.z );
+        joints_rotation_[FRONT_RIGHT]->SetParam ( "vel", 0,   cmd_twist_->angular.z );
+    }
+    
 #ifdef ENABLE_PROFILER
     IGN_PROFILE_END();
 #endif
@@ -148,6 +182,7 @@ void GazeboRosWheelsSteerable::QueueThread()
 
 void GazeboRosWheelsSteerable::callbackTopicCMD ( const geometry_msgs::Twist::ConstPtr& cmd_msg )
 {
+    cmd_twist_ = cmd_msg;
 }
 
 GZ_REGISTER_MODEL_PLUGIN ( GazeboRosWheelsSteerable )
