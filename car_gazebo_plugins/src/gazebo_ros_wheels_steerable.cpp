@@ -134,6 +134,22 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
         event::Events::ConnectWorldUpdateBegin ( boost::bind ( &GazeboRosWheelsSteerable::UpdateChild, this ) );
 
     alive_ = true;
+
+
+    //setup joint controllers for steering
+    this->joint_controller_ = this->parent->GetJointController();
+    common::PID parameter = common::PID();
+    parameter.SetPGain(100);
+    parameter.SetIGain(10);
+    parameter.SetDGain(1);
+    parameter.SetCmdMax(100);
+    parameter.SetCmdMin(-100);
+
+
+    this->joint_controller_->SetPositionPID(
+        joints_rotation_[FRONT_LEFT ]->GetScopedName(), parameter);
+    this->joint_controller_->SetPositionPID(
+        joints_rotation_[FRONT_RIGHT ]->GetScopedName(), parameter);
 }
 
 void GazeboRosWheelsSteerable::Reset()
@@ -153,8 +169,15 @@ void GazeboRosWheelsSteerable::UpdateChild()
     if(cmd_twist_) {
         joints_rotation_[REAR_LEFT  ]->SetParam ( "vel", 0,  -cmd_twist_->linear.x );
         joints_rotation_[REAR_RIGHT ]->SetParam ( "vel", 0,   cmd_twist_->linear.x );
-        joints_rotation_[FRONT_LEFT ]->SetParam ( "vel", 0,  -cmd_twist_->angular.z );
-        joints_rotation_[FRONT_RIGHT]->SetParam ( "vel", 0,   cmd_twist_->angular.z );
+        joints_rotation_[FRONT_LEFT  ]->SetParam ( "vel", 0,  -cmd_twist_->linear.x );
+        joints_rotation_[FRONT_RIGHT ]->SetParam ( "vel", 0,   cmd_twist_->linear.x );
+        
+        //ROS_INFO_NAMED("WheelsSteerable", "Set front right wheel to position %lf", -(M_PI/6) * cmd_twist_->angular.z);
+        this->joint_controller_->SetPositionTarget(joints_rotation_[FRONT_RIGHT]->GetScopedName(),  -(M_PI/6) * cmd_twist_->angular.z);
+        this->joint_controller_->SetPositionTarget(joints_rotation_[FRONT_LEFT]->GetScopedName(), M_PI/6 * cmd_twist_->angular.z);
+        double currentPos = joints_rotation_[FRONT_LEFT]->Position(0);
+        //ROS_INFO_NAMED("WheelsSteerable", "Current front right wheel position %lf", currentPos);
+        this->joint_controller_->Update();
     }
     
 #ifdef ENABLE_PROFILER

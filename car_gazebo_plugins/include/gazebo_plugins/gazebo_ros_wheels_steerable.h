@@ -83,6 +83,7 @@ namespace gazebo {
 
     private:
 
+      gazebo::physics::JointControllerPtr joint_controller_;
 
       GazeboRosPtr gazebo_ros_;
       physics::ModelPtr parent;
