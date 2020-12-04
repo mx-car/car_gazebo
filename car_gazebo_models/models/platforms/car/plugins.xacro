@@ -16,6 +16,12 @@
             <jointSteeringLeft>wheel_mount_front_left_joint</jointSteeringLeft>
             <jointSteeringRight>wheel_mount_front_right_joint</jointSteeringRight>
             <torqueMaxWheel>5</torqueMaxWheel>
+
+            <!--PID controller parameter-->
+            <maxEffortSteeringPid>100.0</maxEffortSteeringPid>
+            <pidP>100.0</pidP>
+            <pidI>10.0</pidI>
+            <pidD>1.0</pidD>
         </plugin>
     </gazebo>
   </xacro:macro>

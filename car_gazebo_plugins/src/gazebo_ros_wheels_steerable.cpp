@@ -77,6 +77,11 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     
     gazebo_ros_->getParameter<double> ( torque_max_wheel_, "torqueMaxWheel", 5.0 );
 
+    gazebo_ros_->getParameter<double> ( max_effort_pid_, "maxEffortSteeringPid", 5.3 );
+    gazebo_ros_->getParameter<double> ( pid_p_, "pidP", 100.0 );
+    gazebo_ros_->getParameter<double> ( pid_i_, "pidI", 10.0 );
+    gazebo_ros_->getParameter<double> ( pid_d_, "pidD", 1.0 );
+
     joints_rotation_.resize(4);
     
     joints_rotation_[REAR_LEFT ] = _parent->GetJoint(joint_rear_left_);
@@ -139,12 +144,11 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     //setup joint controllers for steering
     this->joint_controller_ = this->parent->GetJointController();
     common::PID parameter = common::PID();
-    parameter.SetPGain(100);
-    parameter.SetIGain(10);
-    parameter.SetDGain(1);
-    parameter.SetCmdMax(100);
-    parameter.SetCmdMin(-100);
-
+    parameter.SetPGain(pid_p_);
+    parameter.SetIGain(pid_i_);
+    parameter.SetDGain(pid_d_);
+    parameter.SetCmdMax(max_effort_pid_);
+    parameter.SetCmdMin(-max_effort_pid_);
 
     this->joint_controller_->SetPositionPID(
         joints_rotation_[FRONT_LEFT ]->GetScopedName(), parameter);
