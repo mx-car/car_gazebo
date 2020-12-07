@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  
+  
+  <xacro:macro name="car_top" params="name parent xyz rpy">   
+      
+  <xacro:property name="plate_x"    value="0.226" />
+  <xacro:property name="plate_y"    value="0.08" />
+  <xacro:property name="plate_z"    value="0.02" />
+
+    <!-- Top -->
+    <joint name="${parent}_${name}_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <parent link="${parent}"/>
+        <child link="${name}"/>
+    </joint>
+    <link name="${name}">
+        <visual>
+            <origin xyz="${plate_x/2} 0 ${plate_z/2}" rpy="0 0 0"/>
+            <geometry>
+                <mesh scale="1 1 1" filename="file://$(arg model_dir)$(arg platform_dir)/body/meshes/car/Top.dae"/>
+                <!--<box size="${plate_x} ${plate_y} ${plate_z}"/>-->
+            </geometry>
+            <material name="TopRed">
+                <color rgba="0.851 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="${plate_x/2} 0 ${plate_z/2}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${plate_x} ${plate_y} ${plate_z}"/>
+            </geometry>
+        </collision>
+        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.01">
+            <origin xyz="${plate_x/2} 0 -${plate_z/2}" />
+        </xacro:box_inertial_with_origin>
+    </link>  
+  </xacro:macro>
+
+</robot>
