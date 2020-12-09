@@ -17,6 +17,11 @@
             <jointSteeringRight>wheel_mount_front_right_joint</jointSteeringRight>
             <torqueMaxWheel>5</torqueMaxWheel>
 
+            <!-- Distance between front and rear axis -->
+            <wheelbaseDistance>10.0</wheelbaseDistance>
+            <!-- Distance between left and right wheel -->
+            <kingpinDistance>10.0</kingpinDistance>
+
             <!--PID controller parameter-->
             <maxEffortSteeringPid>100.0</maxEffortSteeringPid>
             <pidP>100.0</pidP>

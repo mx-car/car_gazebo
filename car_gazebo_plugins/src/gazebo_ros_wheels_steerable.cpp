@@ -76,6 +76,9 @@ void GazeboRosWheelsSteerable::Load ( physics::ModelPtr _parent, sdf::ElementPtr
     gazebo_ros_->getParameter<double>      ( update_rate_controller_,   "updateRateController", 100.0 );
     
     gazebo_ros_->getParameter<double> ( torque_max_wheel_, "torqueMaxWheel", 5.0 );
+    
+    gazebo_ros_->getParameter<double> ( wheelbase_distance_, "wheelbaseDistance", 10.0 );
+    gazebo_ros_->getParameter<double> ( kingpin_distance_, "kingpinDistance", 10.0 );
 
     gazebo_ros_->getParameter<double> ( max_effort_pid_, "maxEffortSteeringPid", 5.3 );
     gazebo_ros_->getParameter<double> ( pid_p_, "pidP", 100.0 );

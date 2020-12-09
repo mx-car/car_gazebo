@@ -107,6 +107,9 @@ namespace gazebo {
       std::string joint_rear_right_;
       std::string joint_steering_left_;
       std::string joint_steering_right_;
+
+      double wheelbase_distance_;
+      double kingpin_distance_;
       
       //PID controller parameter
       double max_effort_pid_;
