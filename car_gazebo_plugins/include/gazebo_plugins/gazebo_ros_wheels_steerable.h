@@ -110,6 +110,7 @@ namespace gazebo {
 
       double wheelbase_distance_;
       double kingpin_distance_;
+      double max_steering_angle_;
       
       //PID controller parameter
       double max_effort_pid_;

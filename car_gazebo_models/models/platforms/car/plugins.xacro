@@ -18,9 +18,10 @@
             <torqueMaxWheel>5</torqueMaxWheel>
 
             <!-- Distance between front and rear axis -->
-            <wheelbaseDistance>10.0</wheelbaseDistance>
+            <wheelbaseDistance>0.26</wheelbaseDistance>
             <!-- Distance between left and right wheel -->
-            <kingpinDistance>10.0</kingpinDistance>
+            <kingpinDistance>0.15</kingpinDistance>
+            <maxSteeringAngle>0.5235987756</maxSteeringAngle>
 
             <!--PID controller parameter-->
             <maxEffortSteeringPid>100.0</maxEffortSteeringPid>
