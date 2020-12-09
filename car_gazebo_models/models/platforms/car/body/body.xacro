@@ -3,7 +3,6 @@
   
   <xacro:include filename="inertia_tensors.xacro"/>
   <xacro:include filename="chassis.xacro"/>
-  <xacro:include filename="top.xacro"/>
   <xacro:include filename="wheel.xacro"/>
   <xacro:property name="wheel_radius" value="0.0325" />
   <xacro:property name="M_PI" value="3.1415926535897931" />
@@ -14,10 +13,7 @@
     <link name="${parent}"/>
     
     <!-- Chassis -->
-    <xacro:car_chassis name="${name}" parent="${parent}" xyz="0 0 0.068" rpy="0 0 0"/>
-
-    <!-- Top -->
-    <xacro:car_top name="top_chassis" parent="${parent}" xyz="0 0 0.068" rpy="0 0 0"/>
+    <xacro:car_chassis name="${name}" parent="${parent}" xyz="0.13 0 0.068" rpy="0 0 ${M_PI}"/>
       
     <!-- Wheel -->
     <xacro:wheel side="rear_left"   parent="${parent}"   xyz="0    -0.055 ${wheel_radius}" rpy="+${pi/2} 0 0" radius="${wheel_radius}"  steering="fixed"/>
