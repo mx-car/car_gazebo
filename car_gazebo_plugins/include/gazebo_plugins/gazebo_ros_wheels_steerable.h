@@ -83,6 +83,7 @@ namespace gazebo {
 
     private:
 
+      gazebo::physics::JointControllerPtr joint_controller_;
 
       GazeboRosPtr gazebo_ros_;
       physics::ModelPtr parent;
@@ -106,7 +107,18 @@ namespace gazebo {
       std::string joint_rear_right_;
       std::string joint_steering_left_;
       std::string joint_steering_right_;
+
+      double wheelbase_distance_;
+      double kingpin_distance_;
+      double max_steering_angle_;
       
+      //PID controller parameter
+      double max_effort_pid_;
+      double pid_p_;
+      double pid_i_;
+      double pid_d_;
+
+
       double update_rate_controller_;
       double torque_max_wheel_;
       

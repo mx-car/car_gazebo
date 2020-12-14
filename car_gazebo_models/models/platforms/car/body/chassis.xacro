@@ -18,7 +18,8 @@
         <visual>
             <origin xyz="${plate_x/2} 0 -${plate_z}" rpy="0 0 0"/>
             <geometry>
-                <box size="${plate_x} ${plate_y} ${plate_z}"/>
+                <mesh scale="1 1 1" filename="file://$(arg model_dir)$(arg platform_dir)/body/meshes/car.dae/car.dae"/>
+                <!--<box size="${plate_x} ${plate_y} ${plate_z}"/>-->
             </geometry>
             <material name="ChassisRed">
                 <color rgba="0.851 0.0 0.0 1.0"/>
