@@ -94,6 +94,7 @@ namespace gazebo {
 
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
+      ros::Publisher odometry_publisher_;
       geometry_msgs::TwistConstPtr cmd_twist_;
 
       boost::mutex lock;
@@ -122,6 +123,13 @@ namespace gazebo {
       double update_rate_controller_;
       double torque_max_wheel_;
       
+
+      //Odometry
+
+      nav_msgs::Odometry odom_;
+      geometry_msgs::Pose2D pose_encoder_;
+      double wheel_radius_;
+
       // Custom Callback Queue
       ros::CallbackQueue queue_;
       boost::thread callback_queue_thread_;
