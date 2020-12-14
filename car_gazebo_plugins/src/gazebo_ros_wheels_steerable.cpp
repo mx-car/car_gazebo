@@ -204,7 +204,7 @@ void GazeboRosWheelsSteerable::UpdateChild() {
                 (current_time - last_update_time_).Double();
 
         if (seconds_since_last_update > update_period_) {
-                PublishOdometry(seconds_since_last_update);
+                PublishOdometry();
         }
 
         if (cmd_twist_) {
@@ -313,7 +313,7 @@ void GazeboRosWheelsSteerable::UpdateOdometryEncoder() {
         odom_.twist.twist.linear.y = 0;
 }
 
-void GazeboRosWheelsSteerable::PublishOdometry(double step_time) {
+void GazeboRosWheelsSteerable::PublishOdometry() {
 
         ros::Time current_time = ros::Time::now();
         std::string odom_frame = gazebo_ros_->resolveTF(frame_odom_);
@@ -322,17 +322,32 @@ void GazeboRosWheelsSteerable::PublishOdometry(double step_time) {
         tf::Quaternion qt;
         tf::Vector3 vt;
 
-        if (odom_source_ == ENCODER) {
-                // getting data form encoder integration
-                qt = tf::Quaternion(
-                        odom_.pose.pose.orientation.x, odom_.pose.pose.orientation.y,
-                        odom_.pose.pose.orientation.z, odom_.pose.pose.orientation.w);
-                vt = tf::Vector3(odom_.pose.pose.position.x, odom_.pose.pose.position.y,
-                                 odom_.pose.pose.position.z);
-        }
-        if (odom_source_ == WORLD) {
+       
+        // getting data form encoder integration
+        qt = tf::Quaternion(
+                odom_.pose.pose.orientation.x, odom_.pose.pose.orientation.y,
+                odom_.pose.pose.orientation.z, odom_.pose.pose.orientation.w);
+        vt = tf::Vector3(odom_.pose.pose.position.x, odom_.pose.pose.position.y,
+                                odom_.pose.pose.position.z);
+
+        // set covariance
+        odom_.pose.covariance[0] = 0.00001;
+        odom_.pose.covariance[7] = 0.00001;
+        odom_.pose.covariance[14] = 1000000000000.0;
+        odom_.pose.covariance[21] = 1000000000000.0;
+        odom_.pose.covariance[28] = 1000000000000.0;
+        odom_.pose.covariance[35] = 0.001;
+
+        // set header
+        odom_.header.stamp = current_time;
+        odom_.header.frame_id = odom_frame;
+        odom_.child_frame_id = base_footprint_frame;
+
+        odometry_publisher_.publish(odom_);
+        
+     
 // getting data from gazebo world
-#if GAZEBO_MAJOR_VERSION >= 8
+/*#if GAZEBO_MAJOR_VERSION >= 8
                 ignition::math::Pose3d pose = parent->WorldPose();
 #else
                 ignition::math::Pose3d pose = parent->GetWorldPose().Ign();
@@ -366,7 +381,7 @@ void GazeboRosWheelsSteerable::PublishOdometry(double step_time) {
                         cosf(yaw) * linear.X() + sinf(yaw) * linear.Y();
                 odom_.twist.twist.linear.y =
                         cosf(yaw) * linear.Y() - sinf(yaw) * linear.X();
-        }
+        
 
         // set covariance
         odom_.pose.covariance[0] = 0.00001;
@@ -381,7 +396,7 @@ void GazeboRosWheelsSteerable::PublishOdometry(double step_time) {
         odom_.header.frame_id = odom_frame;
         odom_.child_frame_id = base_footprint_frame;
 
-        odometry_publisher_.publish(odom_);
+        odometry_publisher_.publish(odom_);*/
 }
 
 // Finalize the controller
