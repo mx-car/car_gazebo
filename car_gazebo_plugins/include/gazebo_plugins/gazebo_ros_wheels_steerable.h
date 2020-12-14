@@ -80,6 +80,9 @@ namespace gazebo {
     protected:
       virtual void UpdateChild();
       virtual void FiniChild();
+      virtual void UpdateOdometryEncoder();
+      virtual void PublishOdometry(double step_time);
+
 
     private:
 
@@ -125,10 +128,10 @@ namespace gazebo {
       
 
       //Odometry
-
       nav_msgs::Odometry odom_;
       geometry_msgs::Pose2D pose_encoder_;
       double wheel_radius_;
+      double update_period_;
 
       // Custom Callback Queue
       ros::CallbackQueue queue_;
