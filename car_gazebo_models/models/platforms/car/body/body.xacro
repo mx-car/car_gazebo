@@ -22,7 +22,7 @@
     <xacro:wheel side="front_right" parent="${parent}"   xyz="0.26 +0.055 ${wheel_radius}" rpy="-${pi/2} 0 0" radius="${wheel_radius}"  steering="revolute"/>
     
     <!-- Motor plugin -->
-    <xacro:wheels_steering />
+    <xacro:wheels_steering radius="${wheel_radius}"/>
 
   </xacro:macro>
 </robot>

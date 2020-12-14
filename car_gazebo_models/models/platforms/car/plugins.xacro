@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
-  <xacro:macro name="wheels_steering">
+  <xacro:macro name="wheels_steering" params="radius">
+  <xacro:property name="wheel_radius" value="${radius}" />
+
     <gazebo>
         <plugin name="wheels_steering_controller" filename="libgazebo_ros_wheels_steerable.so">
             <rosDebugLevel>Debug</rosDebugLevel>
@@ -28,6 +30,8 @@
             <pidP>100.0</pidP>
             <pidI>10.0</pidI>
             <pidD>1.0</pidD>
+
+            <wheelRadius>${wheel_radius}</wheelRadius>
         </plugin>
     </gazebo>
   </xacro:macro>
