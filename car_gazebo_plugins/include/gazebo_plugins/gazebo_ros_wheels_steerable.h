@@ -82,6 +82,8 @@ namespace gazebo {
       virtual void FiniChild();
       virtual void UpdateOdometryEncoder();
       virtual void PublishOdometry();
+      virtual void GetGroundTruth();
+      virtual void SetCovariance();
 
 
     private:
@@ -98,6 +100,7 @@ namespace gazebo {
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
       ros::Publisher odometry_publisher_;
+      ros::Publisher ground_truth_odometry_publisher_;
       geometry_msgs::TwistConstPtr cmd_twist_;
 
       boost::mutex lock;
@@ -106,6 +109,8 @@ namespace gazebo {
       std::string topic_cmd_twist_;
       std::string topic_odom_;
       std::string frame_odom_;
+      std::string topic_ground_truth_;
+      std::string frame_ground_truth_;
       std::string frame_base_;
       std::string joint_rear_left_;
       std::string joint_rear_right_;

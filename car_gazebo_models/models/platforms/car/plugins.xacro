@@ -9,8 +9,10 @@
             <rosDebugLevel>Debug</rosDebugLevel>
             <rosDebugLevel>Debug</rosDebugLevel>
             <topicOdom>odom</topicOdom>
-            <frameBase>odom</frameBase>
             <frameOdom>odom</frameOdom>
+            <topicGroundTruth>ground_truth</topicGroundTruth>
+            <frameGroundTruth>ground_truth</frameGroundTruth>
+            <frameBase>odom</frameBase>
             <topicTwist>cmd_vel</topicTwist>
             
             <jointRearLeft>wheel_axis_rear_left_joint</jointRearLeft>
