@@ -4,7 +4,7 @@
   <xacro:include filename="inertia_tensors.xacro"/>
   <xacro:include filename="chassis.xacro"/>
   <xacro:include filename="wheel.xacro"/>
-  <xacro:property name="wheel_radius" value="0.0325" />
+  <xacro:property name="wheel_radius" value="0.03225" />
   <xacro:property name="M_PI" value="3.1415926535897931" />
   
   <xacro:macro name="car_body" params="name parent">

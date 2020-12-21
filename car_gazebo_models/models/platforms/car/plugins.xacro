@@ -28,10 +28,10 @@
             <maxSteeringAngle>0.5235987756</maxSteeringAngle>
 
             <!--PID controller parameter-->
-            <maxEffortSteeringPid>100.0</maxEffortSteeringPid>
-            <pidP>100.0</pidP>
-            <pidI>10.0</pidI>
-            <pidD>1.0</pidD>
+            <maxEffortSteeringPid>1000.0</maxEffortSteeringPid>
+            <pidP>5.0</pidP>
+            <pidI>0.0</pidI>
+            <pidD>0.0</pidD>
 
             <wheelRadius>${wheel_radius}</wheelRadius>
         </plugin>

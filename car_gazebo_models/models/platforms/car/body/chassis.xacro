@@ -26,13 +26,13 @@
             </material>
         </visual>
         <collision>
-            <origin xyz="${plate_x/2} 0 -${plate_z}" rpy="0 0 0"/>
+            <origin xyz="0 0 -${plate_z}" rpy="0 0 0"/>
             <geometry>
                 <box size="${plate_x} ${plate_y} ${plate_z}"/>
             </geometry>
         </collision>
-        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.01">
-            <origin xyz="${plate_x/2} 0 -${plate_z}" />
+        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.970">
+            <origin xyz="0 0 -${plate_z}" />
         </xacro:box_inertial_with_origin>
     </link>  
   </xacro:macro>

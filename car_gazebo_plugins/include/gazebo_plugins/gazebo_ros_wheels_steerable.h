@@ -49,6 +49,8 @@
 #include <geometry_msgs/Pose2D.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64.h>
+#include <control_msgs/JointControllerState.h>
 
 // Custom Callback Queue
 #include <ros/callback_queue.h>
@@ -99,14 +101,20 @@ namespace gazebo {
 
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
+      ros::Subscriber pid_msg_subscriber_;
       ros::Publisher odometry_publisher_;
       ros::Publisher ground_truth_odometry_publisher_;
+      ros::Publisher current_position_publisher_;
+      ros::Publisher target_position_publisher_;
+      ros::Publisher applied_force_publisher_;
       geometry_msgs::TwistConstPtr cmd_twist_;
+      control_msgs::JointControllerState pid_msg;
 
       boost::mutex lock;
       bool alive_;
 
       std::string topic_cmd_twist_;
+      std::string topic_pid_msg_;
       std::string topic_odom_;
       std::string frame_odom_;
       std::string topic_ground_truth_;
@@ -116,6 +124,9 @@ namespace gazebo {
       std::string joint_rear_right_;
       std::string joint_steering_left_;
       std::string joint_steering_right_;
+      std::string topic_current_position_;
+      std::string topic_target_position_;
+      std::string topic_applied_force_;
 
       double wheelbase_distance_;
       double kingpin_distance_;
@@ -146,6 +157,7 @@ namespace gazebo {
 
       // DiffDrive stuff
       void callbackTopicCMD(const geometry_msgs::Twist::ConstPtr& cmd_msg);
+      void callbackTopicPID(const control_msgs::JointControllerState::ConstPtr &pid_msg);
 
       // Update Rate
       common::Time last_update_time_;
