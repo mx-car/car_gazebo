@@ -133,10 +133,26 @@ namespace gazebo {
       double max_steering_angle_;
       
       //PID controller parameter
+
       double max_effort_pid_;
       double pid_p_;
       double pid_i_;
       double pid_d_;
+      double dt;
+      struct PID_Controller_State{
+          double max_effort_pid_;
+          double pid_p_;
+          double pid_i_;
+          double pid_d_;
+          double dt;
+
+          double _integral;
+          double _pre_error;
+      };
+
+      PID_Controller_State pid_controller_front_left;
+      PID_Controller_State pid_controller_front_right;
+      double calculatePID(PID_Controller_State state, double setValue, double currentValue);
 
 
       double update_rate_controller_;

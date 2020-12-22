@@ -99,10 +99,10 @@ namespace gazebo
                                                   M_PI / 6);
 
                 gazebo_ros_->getParameter<double>(max_effort_pid_, "maxEffortSteeringPid",
-                                                  5.3);
-                gazebo_ros_->getParameter<double>(pid_p_, "pidP", 100.0);
-                gazebo_ros_->getParameter<double>(pid_i_, "pidI", 10.0);
-                gazebo_ros_->getParameter<double>(pid_d_, "pidD", 1.0);
+                                                  5.12);
+                gazebo_ros_->getParameter<double>(pid_p_, "pidP", 15.0);
+                gazebo_ros_->getParameter<double>(pid_i_, "pidI", 500.0);
+                gazebo_ros_->getParameter<double>(pid_d_, "pidD", 20.0);
 
                 gazebo_ros_->getParameter<double>(wheel_radius_, "wheelRadius", 0.03225);
 
@@ -188,21 +188,6 @@ namespace gazebo
 
                 alive_ = true;
 
-                // setup joint controllers for steering
-                this->joint_controller_ = this->parent->GetJointController();
-                common::PID parameter = common::PID();
-                parameter.SetPGain(pid_p_);
-                parameter.SetIGain(pid_i_);
-                parameter.SetDGain(pid_d_);
-                parameter.SetIMax(100.0);
-                parameter.SetCmdMax(max_effort_pid_);
-                parameter.SetCmdMin(-max_effort_pid_);
-
-                this->joint_controller_->SetPositionPID(
-                    joints_rotation_[FRONT_LEFT]->GetScopedName(), parameter);
-                this->joint_controller_->SetPositionPID(
-                    joints_rotation_[FRONT_RIGHT]->GetScopedName(), parameter);
-
                 odometry_publisher_ =
                     gazebo_ros_->node()->advertise<nav_msgs::Odometry>(topic_odom_, 1);
                 ROS_INFO_NAMED("WheelsSteerable", "%s: Advertise odom on %s ",
@@ -224,6 +209,26 @@ namespace gazebo
                 pose_encoder_.x = 0.0;
                 pose_encoder_.y = 0.0;
                 pose_encoder_.theta = 0.0;
+
+                // setup PID controllers for steering
+                pid_controller_front_left.max_effort_pid_= max_effort_pid_;
+                pid_controller_front_left.pid_p_= pid_p_;
+                pid_controller_front_left.pid_i_= pid_i_;
+                pid_controller_front_left.pid_d_= pid_d_;
+                pid_controller_front_left.dt= update_period_;
+                pid_controller_front_left._integral = 0;
+                pid_controller_front_left._pre_error = 0;
+
+                pid_controller_front_right.max_effort_pid_= max_effort_pid_;
+                pid_controller_front_right.pid_p_= pid_p_;
+                pid_controller_front_right.pid_i_= pid_i_;
+                pid_controller_front_right.pid_d_= pid_d_;
+                pid_controller_front_right.dt= update_period_;
+                pid_controller_front_right._integral = 0;
+                pid_controller_front_right._pre_error = 0;
+               
+                
+
         }
 
         void GazeboRosWheelsSteerable::Reset()
@@ -285,20 +290,8 @@ namespace gazebo
                         double front_left_angle =
                             atan(wheelbase_distance_ / (curve_radius + (kingpin_distance_ / 2)));
 
-                        /*ROS_INFO_NAMED("WheelsSteerable", "Set front right wheel to position %lf",
-                                       -front_right_angle);
-                        ROS_INFO_NAMED("WheelsSteerable", "Set front left wheel to position %lf",
-                                       front_left_angle);
 
-                        ROS_INFO_NAMED("WheelsSteerable", "Set rear right wheel velocity to %lf",
-                                       rear_right_velocity);
-                        ROS_INFO_NAMED("WheelsSteerable", "Set rear left wheel velocity to %lf",
-                                       rear_left_velocity);*/
 
-                        this->joint_controller_->SetPositionTarget(
-                            joints_rotation_[FRONT_RIGHT]->GetScopedName(), -front_right_angle);
-                        this->joint_controller_->SetPositionTarget(
-                            joints_rotation_[FRONT_LEFT]->GetScopedName(), front_left_angle);
                         joints_rotation_[REAR_LEFT]->SetParam("vel", 0, rear_left_velocity);
                         joints_rotation_[REAR_RIGHT]->SetParam("vel", 0, rear_right_velocity);
 
@@ -306,23 +299,23 @@ namespace gazebo
                         targetPosition.data = front_left_angle;
                         target_position_publisher_.publish(targetPosition);
 
-                        this->joint_controller_->Update();
+                        double currentPosFrontLeft = joints_rotation_[FRONT_LEFT]->Position(0);
+                        double front_left_force = calculatePID(pid_controller_front_left, front_left_angle, currentPosFrontLeft);
+                        joints_rotation_[FRONT_LEFT]->SetForce(0, front_left_force);
 
-                        double currentPos = joints_rotation_[FRONT_LEFT]->Position(0);
+                        double currentPosFrontRight = joints_rotation_[FRONT_RIGHT]->Position(0);
+                        double front_right_force = calculatePID(pid_controller_front_right, -front_right_angle ,currentPosFrontRight);
+                        joints_rotation_[FRONT_RIGHT]->SetForce(0, front_right_force);
 
                         std_msgs::Float64 currentPosistion;
-                        currentPosistion.data = currentPos;
+                        currentPosistion.data = currentPosFrontLeft;
                         current_position_publisher_.publish(currentPosistion);
-
-                        double force = joints_rotation_[FRONT_LEFT]->GetForce(0);
 
                         ROS_INFO_NAMED("WheelsSteerable", "Scoped name: %s force: %lf", joints_rotation_[FRONT_LEFT]->GetScopedName().c_str(), joints_rotation_[FRONT_LEFT]->GetForce(0));
 
                         std_msgs::Float64 appliedForce;
-                        appliedForce.data = force;
+                        appliedForce.data = front_left_force;
                         applied_force_publisher_.publish(appliedForce);
-
-                        //ROS_INFO_NAMED("WheelsSteerable", "Current front left wheel position %lf", currentPos);
                 }
 
 #ifdef ENABLE_PROFILER
@@ -506,18 +499,55 @@ namespace gazebo
         void GazeboRosWheelsSteerable::callbackTopicPID(
             const control_msgs::JointControllerState::ConstPtr &pid_msg)
         {
-                this->joint_controller_ = this->parent->GetJointController();
-                common::PID parameter = common::PID();
-                parameter.SetPGain(pid_msg->p);
-                parameter.SetIGain(pid_msg->i);
-                parameter.SetDGain(pid_msg->d);
+                pid_controller_front_left.max_effort_pid_= pid_msg->i_clamp;
+                pid_controller_front_left.pid_p_= pid_msg->p;
+                pid_controller_front_left.pid_i_= pid_msg->i;
+                pid_controller_front_left.pid_d_= pid_msg->d;
+                pid_controller_front_left.dt= update_period_;
+                pid_controller_front_left._integral = 0;
+                pid_controller_front_left._pre_error = 0;
+
+                pid_controller_front_right.max_effort_pid_= pid_msg->i_clamp;
+                pid_controller_front_right.pid_p_= pid_msg->p;
+                pid_controller_front_right.pid_i_= pid_msg->i;
+                pid_controller_front_right.pid_d_= pid_msg->d;
+                pid_controller_front_right.dt= update_period_;
+                pid_controller_front_right._integral = 0;
+                pid_controller_front_right._pre_error = 0;
 
                 ROS_INFO_NAMED("WheelsSteerable", "Set P to %lf, I to %lf, D to %lf", pid_msg->p, pid_msg->i, pid_msg->d);
+        }
 
-                this->joint_controller_->SetPositionPID(
-                    joints_rotation_[FRONT_LEFT]->GetScopedName(), parameter);
-                this->joint_controller_->SetPositionPID(
-                    joints_rotation_[FRONT_RIGHT]->GetScopedName(), parameter);
+        double GazeboRosWheelsSteerable::calculatePID(PID_Controller_State state, double setValue, double currentValue )
+        {
+            
+            // Calculate error
+            double error = setValue - currentValue;
+
+            // Proportional term
+            double Pout = state.pid_p_ * error;
+
+            // Integral term
+            state._integral += error * state.dt;
+            double Iout = state.pid_i_ * state._integral;
+
+            // Derivative term
+            double derivative = (error - state._pre_error) / state.dt;
+            double Dout = state.pid_d_ * derivative;
+
+            // Calculate total output
+            double output = Pout + Iout + Dout;
+
+            // Restrict to max/min
+            if( output > state.max_effort_pid_ )
+                output = state.max_effort_pid_;
+            else if( output < (-state.max_effort_pid_))
+                output = (-state.max_effort_pid_);
+
+            // Save error to previous error
+            state._pre_error = error;
+
+            return output;
         }
 
         GZ_REGISTER_MODEL_PLUGIN(GazeboRosWheelsSteerable)
