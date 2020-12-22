@@ -81,7 +81,7 @@
                 <cylinder radius="${axis_radius}" length="${axis_length}"/>
             </geometry>
         </collision>
-        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${axis_length}"  mass="0.1135">
+        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${axis_length}"  mass="0.0875">
             <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
         </xacro:cylinder_inertial_with_origin>
     </link>
