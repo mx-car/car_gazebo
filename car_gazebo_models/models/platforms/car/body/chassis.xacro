@@ -31,7 +31,7 @@
                 <box size="${plate_x} ${plate_y} ${plate_z}"/>
             </geometry>
         </collision>
-        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="0.970">
+        <xacro:box_inertial_with_origin x="${plate_x}" y="${plate_y}"  z="${plate_z}" mass="1.074">
             <origin xyz="0 0 -${plate_z}" />
         </xacro:box_inertial_with_origin>
     </link>  
