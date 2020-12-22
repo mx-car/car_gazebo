@@ -526,13 +526,13 @@ namespace gazebo
 
         void GazeboRosWheelsSteerable::setPIDParameters(PID_Controller_State &state, double p, double i, double d, double maxEffort, double dt)
         {
-            pid_controller_front_left.max_effort_pid_= maxEffort;
-            pid_controller_front_left.pid_p_= p;
-            pid_controller_front_left.pid_i_= i;
-            pid_controller_front_left.pid_d_= d;
-            pid_controller_front_left.dt = dt;
-            pid_controller_front_left._integral = 0;
-            pid_controller_front_left._pre_error = 0;
+            state.max_effort_pid_= maxEffort;
+            state.pid_p_= p;
+            state.pid_i_= i;
+            state.pid_d_= d;
+            state.dt = dt;
+            state._integral = 0;
+            state._pre_error = 0;
         }
 
         GZ_REGISTER_MODEL_PLUGIN(GazeboRosWheelsSteerable)
