@@ -211,23 +211,8 @@ namespace gazebo
                 pose_encoder_.theta = 0.0;
 
                 // setup PID controllers for steering
-                pid_controller_front_left.max_effort_pid_= max_effort_pid_;
-                pid_controller_front_left.pid_p_= pid_p_;
-                pid_controller_front_left.pid_i_= pid_i_;
-                pid_controller_front_left.pid_d_= pid_d_;
-                pid_controller_front_left.dt= update_period_;
-                pid_controller_front_left._integral = 0;
-                pid_controller_front_left._pre_error = 0;
-
-                pid_controller_front_right.max_effort_pid_= max_effort_pid_;
-                pid_controller_front_right.pid_p_= pid_p_;
-                pid_controller_front_right.pid_i_= pid_i_;
-                pid_controller_front_right.pid_d_= pid_d_;
-                pid_controller_front_right.dt= update_period_;
-                pid_controller_front_right._integral = 0;
-                pid_controller_front_right._pre_error = 0;
-               
-                
+                setPIDParameters(pid_controller_front_left, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_);
+                setPIDParameters(pid_controller_front_right, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_);             
 
         }
 
@@ -429,9 +414,9 @@ namespace gazebo
                 // set covariance
                 odom_.pose.covariance[0] = 0.00001;
                 odom_.pose.covariance[7] = 0.00001;
-                odom_.pose.covariance[14] = 1000000000000.0;
-                odom_.pose.covariance[21] = 1000000000000.0;
-                odom_.pose.covariance[28] = 1000000000000.0;
+                odom_.pose.covariance[14] = 10000000.0;
+                odom_.pose.covariance[21] = 10000000.0;
+                odom_.pose.covariance[28] = 10000000.0;
                 odom_.pose.covariance[35] = 0.001;
         }
 
@@ -499,25 +484,13 @@ namespace gazebo
         void GazeboRosWheelsSteerable::callbackTopicPID(
             const control_msgs::JointControllerState::ConstPtr &pid_msg)
         {
-                pid_controller_front_left.max_effort_pid_= pid_msg->i_clamp;
-                pid_controller_front_left.pid_p_= pid_msg->p;
-                pid_controller_front_left.pid_i_= pid_msg->i;
-                pid_controller_front_left.pid_d_= pid_msg->d;
-                pid_controller_front_left.dt= update_period_;
-                pid_controller_front_left._integral = 0;
-                pid_controller_front_left._pre_error = 0;
-
-                pid_controller_front_right.max_effort_pid_= pid_msg->i_clamp;
-                pid_controller_front_right.pid_p_= pid_msg->p;
-                pid_controller_front_right.pid_i_= pid_msg->i;
-                pid_controller_front_right.pid_d_= pid_msg->d;
-                pid_controller_front_right.dt= update_period_;
-                pid_controller_front_right._integral = 0;
-                pid_controller_front_right._pre_error = 0;
+                setPIDParameters(pid_controller_front_left, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_);
+                setPIDParameters(pid_controller_front_right, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_);
 
                 ROS_INFO_NAMED("WheelsSteerable", "Set P to %lf, I to %lf, D to %lf", pid_msg->p, pid_msg->i, pid_msg->d);
         }
 
+        // see https://gist.github.com/bradley219/5373998
         double GazeboRosWheelsSteerable::calculatePID(PID_Controller_State state, double setValue, double currentValue )
         {
             
@@ -548,6 +521,17 @@ namespace gazebo
             state._pre_error = error;
 
             return output;
+        }
+
+        void GazeboRosWheelsSteerable::setPIDParameters(PID_Controller_State &state, double p, double i, double d, double maxEffort, double dt)
+        {
+            pid_controller_front_left.max_effort_pid_= maxEffort;
+            pid_controller_front_left.pid_p_= p;
+            pid_controller_front_left.pid_i_= i;
+            pid_controller_front_left.pid_d_= d;
+            pid_controller_front_left.dt = dt;
+            pid_controller_front_left._integral = 0;
+            pid_controller_front_left._pre_error = 0;
         }
 
         GZ_REGISTER_MODEL_PLUGIN(GazeboRosWheelsSteerable)

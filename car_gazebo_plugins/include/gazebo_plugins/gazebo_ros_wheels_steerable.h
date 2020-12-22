@@ -152,6 +152,7 @@ namespace gazebo {
 
       PID_Controller_State pid_controller_front_left;
       PID_Controller_State pid_controller_front_right;
+      void setPIDParameters(PID_Controller_State &state, double p, double i, double d, double maxEffort, double dt);
       double calculatePID(PID_Controller_State state, double setValue, double currentValue);
 
 
