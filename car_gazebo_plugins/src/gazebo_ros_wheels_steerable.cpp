@@ -229,7 +229,6 @@ namespace gazebo
                 IGN_PROFILE_BEGIN("update");
 #endif
 
-                UpdateOdometryEncoder();
 
 #if GAZEBO_MAJOR_VERSION >= 8
                 common::Time current_time = parent->GetWorld()->SimTime();
@@ -241,6 +240,7 @@ namespace gazebo
 
                 if (seconds_since_last_update > update_period_)
                 {
+                        UpdateOdometryEncoder();
                         PublishOdometry();
                 }
 
@@ -319,7 +319,6 @@ namespace gazebo
 #else
                 common::Time current_time = parent->GetWorld()->GetSimTime();
 #endif
-
                 ROS_INFO_NAMED("WheelsSteerable", "Get rear left wheel velocity %lf", vl);
 
                 double seconds_since_last_update =
