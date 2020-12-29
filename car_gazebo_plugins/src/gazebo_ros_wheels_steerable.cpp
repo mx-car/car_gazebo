@@ -359,7 +359,8 @@ namespace gazebo
 
                 odom_.pose.pose.orientation.x = qt.x();
                 odom_.pose.pose.orientation.y = qt.y();
-                odom_.pose.pose.orientation.z = qt.z();
+                //correct orientation for Z Axis
+                odom_.pose.pose.orientation.z = (-1) * qt.z();
                 odom_.pose.pose.orientation.w = qt.w();
 
                 odom_.twist.twist.angular.z = w;
