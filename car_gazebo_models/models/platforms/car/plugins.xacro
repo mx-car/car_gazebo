@@ -1,6 +1,20 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
+  <xacro:macro name="car_state_publisher" params="robot_namespace">
+  	<gazebo>
+  		<plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+  			<robotNamespace>${robot_namespace}</robotNamespace>
+  			<jointName> wheel_axis_rear_left_joint, wheel_axis_rear_right_joint, wheel_axis_front_left_joint, 
+        wheel_axis_front_right_joint, wheel_mount_front_left_joint, wheel_mount_front_right_joint
+        </jointName>
+  			<updateRate>1000.0</updateRate>
+  			<alwaysOn>true</alwaysOn>
+  		</plugin>
+  	</gazebo>
+  </xacro:macro>
+  
+  
   <xacro:macro name="wheels_steering" params="radius">
   <xacro:property name="wheel_radius" value="${radius}" />
 
