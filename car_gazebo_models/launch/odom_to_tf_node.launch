@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_name"      default="r0" />
+  <param name="/use_sim_time" value="true"/>
+  <node pkg="tf_odom" type="tf_odom_node" name="tf_odom_node">
+      <remap from="odom" to="$(arg robot_name)/odom"/>
+      <param name="child_frame_id" value="base_link" type="string"/>
+      <param name="frame_id" value="odom" type="string"/>
+  </node>
+</launch>

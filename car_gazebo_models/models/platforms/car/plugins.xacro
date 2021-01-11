@@ -26,7 +26,7 @@
             <frameOdom>odom</frameOdom>
             <topicGroundTruth>ground_truth</topicGroundTruth>
             <frameGroundTruth>ground_truth</frameGroundTruth>
-            <frameBase>odom</frameBase>
+            <frameBase>base_link</frameBase>
             <topicTwist>cmd_vel</topicTwist>
             
             <jointRearLeft>wheel_axis_rear_left_joint</jointRearLeft>

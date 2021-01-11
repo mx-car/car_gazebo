@@ -7,12 +7,15 @@
   <arg name="platform_dir"                               default="/platforms/car" />
   <arg name="launch_robot_state_publisher"               default="true" />
   <arg name="launch_ground_truth_robot_state_publisher"  default="false" />
-  
+
   <group ns="$(arg robot_name)">
+
+    <!-- Use ROS simulated time -->
+    <param name="/use_sim_time" value="true"/>
 
     <!-- Load the URDF into the ROS Parameter Server -->
     <param name="robot_description" command="$(find xacro)/xacro --inorder '$(arg model_dir)/$(arg platform_dir)/main.xacro' model_dir:=$(arg model_dir) platform_dir:=$(arg platform_dir) namespace:=$(arg robot_name)"/>
-  
+
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a robot -->
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_mobile_base" args="$(arg position) -urdf -param robot_description -model $(arg robot_name)" respawn="false"/>
 
@@ -31,6 +34,6 @@
         </group>
       </group>
     </group>
-  </group> 
-  
+  </group>
+
 </launch>
