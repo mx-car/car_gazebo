@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
 
-  <xacro:macro name="wheel" params="side parent xyz rpy radius steering">   
+  <xacro:macro name="wheel" params="side namespace parent xyz rpy radius steering">   
 
     <xacro:property name="mount_size" value="0.01" />
     <xacro:property name="steering_length" value="0.03" />
@@ -17,12 +17,12 @@
     <!-- Mount -->
     <joint name="wheel_mount_${side}_joint" type="${steering}">  <!--fixed/revolute -->
         <origin xyz="${xyz}" rpy="${rpy}"/>
-        <parent link="${parent}"/>
-        <child link="wheel_mount_${side}"/>
+        <parent link="${namespace}/${parent}"/>
+        <child link="${namespace}/wheel_mount_${side}"/>
         <axis xyz="0 1 0"/>
         <limit effort="50" velocity="50" lower= "${-M_PI}" upper="${M_PI}" />
     </joint>
-    <link name="wheel_mount_${side}">
+    <link name="${namespace}/wheel_mount_${side}">
         <visual>
             <origin xyz="0 0 ${mount_size/2}" rpy="0 0 0"/>
             <geometry> 
@@ -34,10 +34,10 @@
     <!-- steering -->
     <joint name="wheel_steering_${side}_joint" type="fixed">
         <origin xyz=" 0 0 0" rpy="0 0 0"/>
-        <parent link="wheel_mount_${side}"/>
-        <child link="wheel_steering_${side}"/>
+        <parent link="${namespace}/wheel_mount_${side}"/>
+        <child link="${namespace}/wheel_steering_${side}"/>
     </joint>
-    <link name="wheel_steering_${side}">
+    <link name="${namespace}/wheel_steering_${side}">
         <inertial>
             <mass value="0.001"/>
             <origin xyz="0 0 0"/>
@@ -63,12 +63,12 @@
     <!-- axis -->
     <joint name="wheel_axis_${side}_joint" type="continuous">
         <origin xyz=" 0 0 ${steering_radius}" rpy="0 0 0"/>
-        <parent link="wheel_steering_${side}"/>
-        <child link="wheel_axis_${side}"/>
+        <parent link="${namespace}/wheel_steering_${side}"/>
+        <child link="${namespace}/wheel_axis_${side}"/>
         <axis xyz="0 0 1"/>
           <dynamics damping="0.000" friction="0.0"/>
     </joint>
-    <link name="wheel_axis_${side}">
+    <link name="${namespace}/wheel_axis_${side}">
         <visual>
             <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
             <geometry> 
@@ -89,10 +89,10 @@
     <!-- Wheel -->
     <joint name="wheel_${side}_joint" type="fixed">
         <origin xyz=" 0 0 ${axis_length}" rpy="0 0 0"/>
-        <parent link="wheel_axis_${side}"/>
-        <child link="wheel_${side}"/>
+        <parent link="${namespace}/wheel_axis_${side}"/>
+        <child link="${namespace}/wheel_${side}"/>
     </joint>
-    <link name="wheel_${side}">
+    <link name="${namespace}/wheel_${side}">
         <visual>
             <origin xyz="0 0 ${wheel_length/2}" rpy="0 0 0"/>
             <geometry> 
@@ -113,10 +113,10 @@
     <!-- Wheel Cap -->
     <joint name="wheel_cap_${side}_joint" type="fixed">
         <origin xyz=" 0 0 ${wheel_length}" rpy="0 0 0"/>
-        <parent link="wheel_${side}"/>
-        <child link="wheel_cap_${side}"/>
+        <parent link="${namespace}/wheel_${side}"/>
+        <child link="${namespace}/wheel_cap_${side}"/>
     </joint>
-    <link name="wheel_cap_${side}">
+    <link name="${namespace}/wheel_cap_${side}">
         <visual>
             <origin xyz="0 0 ${cap_length/2}" rpy="0 0 0"/>
             <geometry> 

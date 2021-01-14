@@ -73,6 +73,7 @@ namespace gazebo
                                                        "pid_msg");
                 gazebo_ros_->getParameter<std::string>(topic_odom_, "topicOdom", "odom");
                 gazebo_ros_->getParameter<std::string>(frame_odom_, "frameOdom", "odom");
+                gazebo_ros_->getParameterBoolean ( publishOdomTF_, "publishOdomTF", true);
                 gazebo_ros_->getParameter<std::string>(topic_ground_truth_, "topicGroundTruth", "ground_truth");
                 gazebo_ros_->getParameter<std::string>(frame_ground_truth_, "frameGroundTruth", "ground_truth");
                 gazebo_ros_->getParameter<std::string>(frame_base_, "frameBase", "base_link");
@@ -87,8 +88,6 @@ namespace gazebo
                                                        "jointSteeringRight",
                                                        "wheel_mount_front_right_joint");
 
-                gazebo_ros_->getParameter<double>(update_rate_controller_,
-                                                  "updateRateController", 100.0);
 
                 gazebo_ros_->getParameter<double>(torque_max_wheel_, "torqueMaxWheel", 5.0);
 
@@ -98,6 +97,8 @@ namespace gazebo
                 gazebo_ros_->getParameter<double>(max_steering_angle_, "maxSteeringAngle",
                                                   M_PI / 6);
 
+                gazebo_ros_->getParameter<double>(update_rate_controller_,
+                                                  "updateRateController", 100.0);
                 gazebo_ros_->getParameter<double>(max_effort_pid_, "maxEffortSteeringPid",
                                                   5.12);
                 gazebo_ros_->getParameter<double>(pid_p_, "pidP", 15.0);
@@ -110,6 +111,12 @@ namespace gazebo
                 gazebo_ros_->getParameter<std::string>(topic_target_position_, "topicTargetPosition", "target_position");
                 gazebo_ros_->getParameter<std::string>(topic_applied_force_, "topicAppliedForce", "applied_force");
 
+                ROS_INFO("Controllable Joints:");
+                auto joints = _parent->GetJoints();
+                for (const auto &j : joints)
+                {
+                        ROS_INFO_NAMED("- joints", "%s", j->GetName().c_str());
+                }
                 joints_rotation_.resize(4);
 
                 joints_rotation_[REAR_LEFT] = _parent->GetJoint(joint_rear_left_);
@@ -118,6 +125,7 @@ namespace gazebo
                         char error[200];
                         snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s",
                                  gazebo_ros_->info(), joint_rear_left_.c_str());
+                        ROS_ERROR("Joint not found: %s",error);
                         gzthrow(error);
                 }
                 joints_rotation_[REAR_RIGHT] = _parent->GetJoint(joint_rear_right_);
@@ -126,6 +134,7 @@ namespace gazebo
                         char error[200];
                         snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s",
                                  gazebo_ros_->info(), joint_rear_right_.c_str());
+                        ROS_ERROR("Joint not found: %s",error);
                         gzthrow(error);
                 }
 
@@ -135,6 +144,7 @@ namespace gazebo
                         char error[200];
                         snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s",
                                  gazebo_ros_->info(), joint_steering_left_.c_str());
+                        ROS_ERROR("Joint not found: %s",error);
                         gzthrow(error);
                 }
                 joints_rotation_[FRONT_RIGHT] = _parent->GetJoint(joint_steering_right_);
@@ -143,6 +153,7 @@ namespace gazebo
                         char error[200];
                         snprintf(error, 200, "%s: couldn't get wheel hinge joint named %s",
                                  gazebo_ros_->info(), joint_steering_right_.c_str());
+                        ROS_ERROR("Joint not found: %s",error);
                         gzthrow(error);
                 }
 
@@ -151,12 +162,6 @@ namespace gazebo
                 joints_rotation_[FRONT_LEFT]->SetParam("fmax", 0, torque_max_wheel_);
                 joints_rotation_[FRONT_RIGHT]->SetParam("fmax", 0, torque_max_wheel_);
 
-                ROS_WARN("WheelsSteerable list");
-                auto joints = _parent->GetJoints();
-                for (const auto &j : joints)
-                {
-                        ROS_INFO_NAMED("joints", "%s", j->GetName().c_str());
-                }
 
                 ros::SubscribeOptions so =
                     ros::SubscribeOptions::create<geometry_msgs::Twist>(
@@ -205,20 +210,27 @@ namespace gazebo
                 applied_force_publisher_ =
                     gazebo_ros_->node()->advertise<std_msgs::Float64>(topic_applied_force_, 1);
 
-                update_period_ = 0.1;
+                if ( this->update_rate_controller_ > 0.0 ) this->update_period_controller_ = 1.0 / this->update_rate_controller_;
+                else this->update_period_controller_ = 0.0;
                 pose_encoder_.x = 0.0;
                 pose_encoder_.y = 0.0;
                 pose_encoder_.theta = 0.0;
 
                 // setup PID controllers for steering
-                setPIDParameters(pid_controller_front_left, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_);
-                setPIDParameters(pid_controller_front_right, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_);             
+                setPIDParameters(pid_controller_front_left, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_controller_);
+                setPIDParameters(pid_controller_front_right, pid_p_, pid_i_, pid_d_, max_effort_pid_, update_period_controller_);             
 
+                transform_broadcaster_ = boost::shared_ptr<tf::TransformBroadcaster>(new tf::TransformBroadcaster());
+#if GAZEBO_MAJOR_VERSION >= 8
+                common::Time next_update_time_ = parent->GetWorld()->SimTime();
+#else
+                common::Time next_update_time_ = parent->GetWorld()->GetSimTime();
+#endif
         }
 
         void GazeboRosWheelsSteerable::Reset()
         {
-                last_update_time_ = parent->GetWorld()->SimTime();
+                next_update_time_ = parent->GetWorld()->SimTime();
         }
 
         // Update the controller
@@ -235,72 +247,71 @@ namespace gazebo
 #else
                 common::Time current_time = parent->GetWorld()->GetSimTime();
 #endif
-                double seconds_since_last_update =
-                    (current_time - last_update_time_).Double();
 
-                if (seconds_since_last_update > update_period_)
+                if (next_update_time_ < current_time)
                 {
-                        UpdateOdometryEncoder();
-                        PublishOdometry();
-                }
+                    while(next_update_time_< current_time)  next_update_time_ += common::Time ( this->update_period_controller_ );
+                    UpdateOdometryEncoder();
+                    PublishOdometry();
 
-                if (cmd_twist_)
-                {
-                        double curve_radius =
-                            wheelbase_distance_ / tan(max_steering_angle_ * cmd_twist_->angular.z);
-                        double angular_velocity = cmd_twist_->linear.x / curve_radius;
+                    if (cmd_twist_)
+                    {
+                            double curve_radius =
+                                wheelbase_distance_ / tan(max_steering_angle_ * cmd_twist_->angular.z);
+                            double angular_velocity = cmd_twist_->linear.x / curve_radius;
 
-                        ROS_INFO_NAMED("WheelsSteerable", "Calculated angular velocity %lf",
-                                       angular_velocity);
-                        ROS_INFO_NAMED("WheelsSteerable", "Calculated curve radius %lf",
-                                       curve_radius);
+                            ROS_DEBUG_NAMED("WheelsSteerable", "Calculated angular velocity %lf",
+                                        angular_velocity);
+                            ROS_DEBUG_NAMED("WheelsSteerable", "Calculated curve radius %lf",
+                                        curve_radius);
 
-                        double rear_right_velocity = 0;
-                        double rear_left_velocity = 0;
-                        if (isinf(curve_radius))
-                        {
-                                rear_right_velocity = cmd_twist_->linear.x;
-                                rear_left_velocity = -cmd_twist_->linear.x;
-                        }
-                        else
-                        {
-                                rear_right_velocity =
-                                    angular_velocity * (curve_radius - (kingpin_distance_ / 2));
-                                rear_left_velocity =
-                                    -angular_velocity * (curve_radius + (kingpin_distance_ / 2));
-                        }
+                            double rear_right_velocity = 0;
+                            double rear_left_velocity = 0;
+                            if (isinf(curve_radius))
+                            {
+                                    rear_right_velocity = cmd_twist_->linear.x;
+                                    rear_left_velocity = -cmd_twist_->linear.x;
+                            }
+                            else
+                            {
+                                    rear_right_velocity =
+                                        angular_velocity * (curve_radius - (kingpin_distance_ / 2));
+                                    rear_left_velocity =
+                                        -angular_velocity * (curve_radius + (kingpin_distance_ / 2));
+                            }
 
-                        double front_right_angle =
-                            atan(wheelbase_distance_ / (curve_radius - (kingpin_distance_ / 2)));
-                        double front_left_angle =
-                            atan(wheelbase_distance_ / (curve_radius + (kingpin_distance_ / 2)));
+                            double front_right_angle =
+                                atan(wheelbase_distance_ / (curve_radius - (kingpin_distance_ / 2)));
+                            double front_left_angle =
+                                atan(wheelbase_distance_ / (curve_radius + (kingpin_distance_ / 2)));
 
 
 
-                        joints_rotation_[REAR_LEFT]->SetParam("vel", 0, rear_left_velocity);
-                        joints_rotation_[REAR_RIGHT]->SetParam("vel", 0, rear_right_velocity);
+                            joints_rotation_[REAR_LEFT]->SetParam("vel", 0, rear_left_velocity);
+                            joints_rotation_[REAR_RIGHT]->SetParam("vel", 0, rear_right_velocity);
 
-                        std_msgs::Float64 targetPosition;
-                        targetPosition.data = front_left_angle;
-                        target_position_publisher_.publish(targetPosition);
+                            std_msgs::Float64 targetPosition;
+                            targetPosition.data = front_left_angle;
+                            target_position_publisher_.publish(targetPosition);
 
-                        double currentPosFrontLeft = joints_rotation_[FRONT_LEFT]->Position(0);
-                        double front_left_force = calculatePID(pid_controller_front_left, front_left_angle, currentPosFrontLeft);
-                        joints_rotation_[FRONT_LEFT]->SetForce(0, front_left_force);
+                            double currentPosFrontLeft = joints_rotation_[FRONT_LEFT]->Position(0);
+                            double front_left_force = calculatePID(pid_controller_front_left, front_left_angle, currentPosFrontLeft);
+                            joints_rotation_[FRONT_LEFT]->SetForce(0, front_left_force);
 
-                        double currentPosFrontRight = joints_rotation_[FRONT_RIGHT]->Position(0);
-                        double front_right_force = calculatePID(pid_controller_front_right, -front_right_angle ,currentPosFrontRight);
-                        joints_rotation_[FRONT_RIGHT]->SetForce(0, front_right_force);
+                            double currentPosFrontRight = joints_rotation_[FRONT_RIGHT]->Position(0);
+                            double front_right_force = calculatePID(pid_controller_front_right, -front_right_angle ,currentPosFrontRight);
+                            joints_rotation_[FRONT_RIGHT]->SetForce(0, front_right_force);
 
-                        std_msgs::Float64 currentPosistion;
-                        currentPosistion.data = currentPosFrontLeft;
-                        current_position_publisher_.publish(currentPosistion);
+                            std_msgs::Float64 currentPosistion;
+                            currentPosistion.data = currentPosFrontLeft;
+                            current_position_publisher_.publish(currentPosistion);
 
-                        ROS_INFO_NAMED("WheelsSteerable", "Scoped name: %s force: %lf", joints_rotation_[FRONT_LEFT]->GetScopedName().c_str(), joints_rotation_[FRONT_LEFT]->GetForce(0));
+                            ROS_DEBUG_NAMED("WheelsSteerable", "Scoped name: %s force: %lf", joints_rotation_[FRONT_LEFT]->GetScopedName().c_str(), joints_rotation_[FRONT_LEFT]->GetForce(0));
 
-                        std_msgs::Float64 appliedForce;
-                        appliedForce.data = front_left_force;
-                        applied_force_publisher_.publish(appliedForce);
+                            std_msgs::Float64 appliedForce;
+                            appliedForce.data = front_left_force;
+                            applied_force_publisher_.publish(appliedForce);
+                    }
                 }
 
 #ifdef ENABLE_PROFILER
@@ -319,7 +330,7 @@ namespace gazebo
 #else
                 common::Time current_time = parent->GetWorld()->GetSimTime();
 #endif
-                ROS_INFO_NAMED("WheelsSteerable", "Get rear left wheel velocity %lf", vl);
+                ROS_DEBUG_NAMED("WheelsSteerable", "Get rear left wheel velocity %lf", vl);
 
                 double seconds_since_last_update =
                     (current_time - last_odom_update_).Double();
@@ -408,6 +419,8 @@ namespace gazebo
                     cosf(yaw) * linear.X() + sinf(yaw) * linear.Y();
                 odom_.twist.twist.linear.y =
                     cosf(yaw) * linear.Y() - sinf(yaw) * linear.X();
+                    
+                    
         }
 
         void GazeboRosWheelsSteerable::SetCovariance()
@@ -455,6 +468,13 @@ namespace gazebo
                 odom_.child_frame_id = base_footprint_frame;
 
                 ground_truth_odometry_publisher_.publish(odom_);
+                
+                if (publishOdomTF_ == true){
+                    tf::Transform base_footprint_to_odom ( qt, vt );
+                    transform_broadcaster_->sendTransform (
+                        tf::StampedTransform ( base_footprint_to_odom, current_time,
+                                            odom_frame, base_footprint_frame ) );
+                }
         }
 
         // Finalize the controller
@@ -485,10 +505,10 @@ namespace gazebo
         void GazeboRosWheelsSteerable::callbackTopicPID(
             const control_msgs::JointControllerState::ConstPtr &pid_msg)
         {
-                setPIDParameters(pid_controller_front_left, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_);
-                setPIDParameters(pid_controller_front_right, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_);
+                setPIDParameters(pid_controller_front_left, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_controller_);
+                setPIDParameters(pid_controller_front_right, pid_msg->p, pid_msg->i, pid_msg->d, pid_msg->i_clamp, update_period_controller_);
 
-                ROS_INFO_NAMED("WheelsSteerable", "Set P to %lf, I to %lf, D to %lf", pid_msg->p, pid_msg->i, pid_msg->d);
+                ROS_DEBUG_NAMED("WheelsSteerable", "Set P to %lf, I to %lf, D to %lf", pid_msg->p, pid_msg->i, pid_msg->d);
         }
 
         // see https://gist.github.com/bradley219/5373998
