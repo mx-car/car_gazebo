@@ -14,4 +14,5 @@
   <xacro:include filename="${model_dir}/body.xacro"/>
   <xacro:car_body name="chassis" parent="base_link"/>
 
+	<xacro:car_state_publisher robot_namespace="$(arg namespace)"/>
 </robot>
