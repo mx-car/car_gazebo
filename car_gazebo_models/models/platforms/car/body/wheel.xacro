@@ -9,7 +9,7 @@
     <xacro:property name="steering_radius" value="0.005" />
     <xacro:property name="axis_length" value="0.01" />
     <xacro:property name="axis_radius" value="0.01" />
-    <xacro:property name="wheel_length" value="0.025" />
+    <xacro:property name="wheel_length" value="0.026" />
     <xacro:property name="wheel_radius" value="${radius}" />
     <xacro:property name="cap_size" value="0.01" />
     <xacro:property name="cap_length" value="0.005" />
@@ -39,7 +39,7 @@
     </joint>
     <link name="wheel_steering_${side}">
         <inertial>
-            <mass value="0.01"/>
+            <mass value="0.001"/>
             <origin xyz="0 0 0"/>
             <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
         </inertial>
@@ -55,48 +55,13 @@
                 <cylinder radius="${steering_radius}" length="${steering_length}"/>
             </geometry>
         </collision>
-        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${steering_length}"  mass="0.01">
+        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${steering_length}"  mass="0.001">
             <origin xyz="0 0 ${steering_radius/2}" rpy="0 0 0"/>
         </xacro:cylinder_inertial_with_origin>
     </link>
     
     <!-- axis -->
-    <joint name="wheel_axis_${side}_joint" type="continuous">/3
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        ******************------------------+
-        -
+    <joint name="wheel_axis_${side}_joint" type="continuous">
         <origin xyz=" 0 0 ${steering_radius}" rpy="0 0 0"/>
         <parent link="wheel_steering_${side}"/>
         <child link="wheel_axis_${side}"/>
@@ -116,7 +81,7 @@
                 <cylinder radius="${axis_radius}" length="${axis_length}"/>
             </geometry>
         </collision>
-        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${axis_length}"  mass="0.01">
+        <xacro:cylinder_inertial_with_origin radius="${axis_radius}" length="${axis_length}"  mass="0.0875">
             <origin xyz="0 0 ${axis_length/2}" rpy="0 0 0"/>
         </xacro:cylinder_inertial_with_origin>
     </link>
@@ -140,7 +105,7 @@
                 <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
             </geometry>
         </collision>
-        <xacro:cylinder_inertial_with_origin radius="${wheel_radius}" length="${wheel_length}"  mass="0.1">
+        <xacro:cylinder_inertial_with_origin radius="${wheel_radius}" length="${wheel_length}"  mass="0.026">
             <origin xyz="0 0 ${wheel_length/2}" rpy="0 0 0"/>
         </xacro:cylinder_inertial_with_origin>
     </link>

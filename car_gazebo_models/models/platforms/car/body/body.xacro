@@ -4,8 +4,15 @@
   <xacro:include filename="inertia_tensors.xacro"/>
   <xacro:include filename="chassis.xacro"/>
   <xacro:include filename="wheel.xacro"/>
-  <xacro:property name="wheel_radius" value="0.0325" />
+  <xacro:property name="wheel_radius" value="0.03225" />
   <xacro:property name="M_PI" value="3.1415926535897931" />
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+
+  <xacro:arg name="name" default="camera" />
+  <xacro:arg name="topics_ns" default="camera" />
+  <xacro:arg name="use_nominal_extrinsics" default="true" />
+  <xacro:arg name="publish_pointcloud" default="true" />
+  <xacro:arg name="add_plug" default="false" />
   
   <xacro:macro name="car_body" params="name parent">
         
@@ -13,15 +20,26 @@
     <link name="${parent}"/>
     
     <!-- Chassis -->
-    <xacro:car_chassis name="${name}" parent="${parent}" xyz="0 0 0.068" rpy="0 0 0"/>
+    <xacro:car_chassis name="${name}" parent="${parent}" xyz="0.13 0 0.068" rpy="0 0 ${M_PI}"/>
       
+    <!-- Wheel -->
     <xacro:wheel side="rear_left"   parent="${parent}"   xyz="0    -0.055 ${wheel_radius}" rpy="+${pi/2} 0 0" radius="${wheel_radius}"  steering="fixed"/>
     <xacro:wheel side="rear_right"  parent="${parent}"   xyz="0    +0.055 ${wheel_radius}" rpy="-${pi/2} 0 0" radius="${wheel_radius}"  steering="fixed"/>
     <xacro:wheel side="front_left"  parent="${parent}"   xyz="0.26 -0.055 ${wheel_radius}" rpy="+${pi/2} 0 0" radius="${wheel_radius}"  steering="revolute"/>
     <xacro:wheel side="front_right" parent="${parent}"   xyz="0.26 +0.055 ${wheel_radius}" rpy="-${pi/2} 0 0" radius="${wheel_radius}"  steering="revolute"/>
     
     <!-- Motor plugin -->
-    <xacro:wheels_steering />
+    <xacro:wheels_steering radius="${wheel_radius}"/>
 
+
+    <!-- <xacro:sensor_d435 name="$(arg name)" topics_ns="$(arg topics_ns)" parent="${parent}" use_nominal_extrinsics="$(arg use_nominal_extrinsics)" 
+    publish_pointcloud="$(arg publish_pointcloud)" add_plug="$(arg add_plug)">
+      <origin xyz="0 0 0.18" rpy="0 0.1 0"/>
+    </xacro:sensor_d435>
+ -->
+ 
+  <xacro:sensor_d435 name="$(arg name)" topics_ns="$(arg topics_ns)" parent="chassis" use_nominal_extrinsics="$(arg use_nominal_extrinsics)" publish_pointcloud="$(arg publish_pointcloud)" add_plug="$(arg add_plug)">
+    <origin xyz="0.13 0 0.12" rpy="0 0.1 3.14159"/>
+  </xacro:sensor_d435>
   </xacro:macro>
 </robot>

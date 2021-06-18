@@ -5,7 +5,7 @@
   <arg name="position"                                   default="-x 0.0 -y 0.0 -z 0.1" />
   <arg name="model_dir"                                  default="$(find car_gazebo_models)/models"/>
   <arg name="platform_dir"                               default="/platforms/car" />
-  <arg name="launch_robot_state_publisher"               default="false" />
+  <arg name="launch_robot_state_publisher"               default="true" />
   <arg name="launch_ground_truth_robot_state_publisher"  default="false" />
   
   <group ns="$(arg robot_name)">
@@ -15,6 +15,28 @@
   
     <!-- Run a python script to the send a service call to gazebo_ros to spawn a robot -->
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_mobile_base" args="$(arg position) -urdf -param robot_description -model $(arg robot_name)" respawn="false"/>
+
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+      <remap from="cloud_in" to="/camera/depth/color/points"/>
+      <remap from="scan" to="/camera/scan"/>
+
+      <rosparam>
+        target_frame: camera_link
+        transform_tolerance: 0.01
+        min_height: 0.0
+        max_height: 1.0
+
+        angle_min: -1.5708
+        angle_max: 1.5708
+        angle_increment: 0.0087
+        scan_time: 0.333
+        range_min: 0.45
+        range_max: 4.0
+        use_inf: true
+
+        concurrency_level: 1
+      </rosparam>
+    </node>
 
     <!-- Run robot state publisher -->
     <group if="$(arg launch_robot_state_publisher)">

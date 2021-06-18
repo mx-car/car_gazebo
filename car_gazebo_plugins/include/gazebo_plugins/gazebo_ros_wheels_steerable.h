@@ -49,6 +49,8 @@
 #include <geometry_msgs/Pose2D.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64.h>
+#include <control_msgs/JointControllerState.h>
 
 // Custom Callback Queue
 #include <ros/callback_queue.h>
@@ -80,9 +82,15 @@ namespace gazebo {
     protected:
       virtual void UpdateChild();
       virtual void FiniChild();
+      virtual void UpdateOdometryEncoder();
+      virtual void PublishOdometry();
+      virtual void GetGroundTruth();
+      virtual void SetCovariance();
+
 
     private:
 
+      gazebo::physics::JointControllerPtr joint_controller_;
 
       GazeboRosPtr gazebo_ros_;
       physics::ModelPtr parent;
@@ -93,23 +101,72 @@ namespace gazebo {
 
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
+      ros::Subscriber pid_msg_subscriber_;
+      ros::Publisher odometry_publisher_;
+      ros::Publisher ground_truth_odometry_publisher_;
+      ros::Publisher current_position_publisher_;
+      ros::Publisher target_position_publisher_;
+      ros::Publisher applied_force_publisher_;
       geometry_msgs::TwistConstPtr cmd_twist_;
+      control_msgs::JointControllerState pid_msg;
 
       boost::mutex lock;
       bool alive_;
 
       std::string topic_cmd_twist_;
+      std::string topic_pid_msg_;
       std::string topic_odom_;
       std::string frame_odom_;
+      std::string topic_ground_truth_;
+      std::string frame_ground_truth_;
       std::string frame_base_;
       std::string joint_rear_left_;
       std::string joint_rear_right_;
       std::string joint_steering_left_;
       std::string joint_steering_right_;
+      std::string topic_current_position_;
+      std::string topic_target_position_;
+      std::string topic_applied_force_;
+
+      double wheelbase_distance_;
+      double kingpin_distance_;
+      double max_steering_angle_;
       
+      //PID controller parameter
+
+      double max_effort_pid_;
+      double pid_p_;
+      double pid_i_;
+      double pid_d_;
+      double dt;
+      struct PID_Controller_State{
+          double max_effort_pid_;
+          double pid_p_;
+          double pid_i_;
+          double pid_d_;
+          double dt;
+
+          double _integral;
+          double _pre_error;
+      };
+
+      PID_Controller_State pid_controller_front_left;
+      PID_Controller_State pid_controller_front_right;
+      void setPIDParameters(PID_Controller_State &state, double p, double i, double d, double maxEffort, double dt);
+      double calculatePID(PID_Controller_State state, double setValue, double currentValue);
+
+
       double update_rate_controller_;
       double torque_max_wheel_;
       
+
+      //Odometry
+      nav_msgs::Odometry odom_;
+      geometry_msgs::Pose2D pose_encoder_;
+      double wheel_radius_;
+      double update_period_;
+      common::Time last_odom_update_;
+
       // Custom Callback Queue
       ros::CallbackQueue queue_;
       boost::thread callback_queue_thread_;
@@ -117,6 +174,7 @@ namespace gazebo {
 
       // DiffDrive stuff
       void callbackTopicCMD(const geometry_msgs::Twist::ConstPtr& cmd_msg);
+      void callbackTopicPID(const control_msgs::JointControllerState::ConstPtr &pid_msg);
 
       // Update Rate
       common::Time last_update_time_;
