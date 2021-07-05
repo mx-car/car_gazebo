@@ -12,6 +12,22 @@
   <!-- Import platform -->
   <xacro:property name="model_dir" value="$(arg model_dir)/$(arg platform_dir)/body"/>
   <xacro:include filename="${model_dir}/body.xacro"/>
-  <xacro:car_body name="chassis" namespace="$(arg namespace)" parent="base_link"/>
+  <xacro:car_body name="chassis" parent="base_link"/>
+  
+  <!-- <xacro:include filename="$(find realsense2_description)/urdf/test_d435_camera.urdf.xacro" />
+	<sensor_d435 parent="chassis" xyz="0 -0.055 1">
+	</sensor_d435> -->
 
+  <!-- <xacro:include filename="$(find realsense2_description)/urdf/test_d435_camera.urdf.xacro" >
+    <pose>0.2 0 0.2 0 0 0</pose>
+  </xacro:include>
+  <joint name="camera_chassis_joint" type="fixed">
+    <child>realsense2_camera::link</child>
+    <parent>chassis</parent>
+    <parent link="chassis"/>
+    <child link="camera"/>
+  </joint> -->
+
+
+	<xacro:car_state_publisher robot_namespace="$(arg namespace)"/>
 </robot>

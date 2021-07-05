@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
   
-  <xacro:macro name="car_chassis" params="name namespace parent xyz rpy">   
+  <xacro:macro name="car_chassis" params="name parent xyz rpy">   
       
   <xacro:property name="plate_x"    value="0.26" />
   <xacro:property name="plate_y"    value="0.08" />
@@ -11,10 +11,10 @@
     <!-- Chassis -->
     <joint name="${parent}_${name}_joint" type="fixed">
         <origin xyz="${xyz}" rpy="${rpy}"/>
-        <parent link="${namespace}/${parent}"/>
-        <child link="${namespace}/${name}"/>
+        <parent link="${parent}"/>
+        <child link="${name}"/>
     </joint>
-    <link name="${namespace}/${name}">
+    <link name="${name}">
         <visual>
             <origin xyz="${plate_x/2} 0 -${plate_z}" rpy="0 0 0"/>
             <geometry>

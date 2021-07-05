@@ -98,7 +98,6 @@ namespace gazebo {
 
 
       std::vector< physics::JointPtr> joints_rotation_;
-      boost::shared_ptr<tf::TransformBroadcaster> transform_broadcaster_;
 
       // ROS STUFF
       ros::Subscriber cmd_vel_subscriber_;
@@ -128,7 +127,7 @@ namespace gazebo {
       std::string topic_current_position_;
       std::string topic_target_position_;
       std::string topic_applied_force_;
-      bool publishOdomTF_;
+
       double wheelbase_distance_;
       double kingpin_distance_;
       double max_steering_angle_;
@@ -165,7 +164,7 @@ namespace gazebo {
       nav_msgs::Odometry odom_;
       geometry_msgs::Pose2D pose_encoder_;
       double wheel_radius_;
-      double update_period_controller_;
+      double update_period_;
       common::Time last_odom_update_;
 
       // Custom Callback Queue
@@ -178,7 +177,7 @@ namespace gazebo {
       void callbackTopicPID(const control_msgs::JointControllerState::ConstPtr &pid_msg);
 
       // Update Rate
-      common::Time next_update_time_;
+      common::Time last_update_time_;
       
 
   };
