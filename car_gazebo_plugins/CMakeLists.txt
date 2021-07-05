@@ -136,3 +136,10 @@ install(DIRECTORY include/
    DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
    FILES_MATCHING PATTERN "*.h"
 )
+
+catkin_install_python(PROGRAMS src/laserToCluster.py
+	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(PROGRAMS src/steer_between_2_objects.py
+	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
